@@ -26,9 +26,6 @@ import java.util.Map;
 
 import com.google.analytics.data.v1beta.DateRange;
 import com.google.analytics.data.v1beta.Dimension;
-import com.google.analytics.data.v1beta.Filter;
-import com.google.analytics.data.v1beta.Filter.StringFilter;
-import com.google.analytics.data.v1beta.Filter.StringFilter.MatchType;
 import com.google.analytics.data.v1beta.FilterExpression;
 import com.google.analytics.data.v1beta.FilterExpressionList;
 import com.google.analytics.data.v1beta.Metric;
@@ -58,7 +55,8 @@ public class GoogleAnalyticsInput extends GoogleAnalyticsBase {
 	private String propertyId;
 	private int fetchSize = 0;
 	private int lastFetchedRowCount = 0;
-	private int overallPlainRowCount = 0;
+	private int expectedTotalPlainRowCount = 0;
+	private int currentOverallPlainRowCount = 0;
 	private int currentPlainRowIndex = 0;
 	private int startIndex = 1;
 	private List<DimensionValue> currentResultRowDimensionValues;
@@ -68,11 +66,10 @@ public class GoogleAnalyticsInput extends GoogleAnalyticsBase {
 	private boolean excludeDate = false; 
 	private List<Dimension> listDimensions = null;
 	private List<Metric> listMetrics = null;
+	private RunReportRequest.Builder reportRequestBuilder = null;
 	private RunReportRequest reportRequest;
 	private RunReportResponse response;
 	private List<Row> lastResultSet = null;
-	private boolean addTotalsRecord = false;
-	private boolean totalsDelivered = false;
 	private SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyyMMdd");
 	private int errorCode = 0;
 	private boolean success = true;
@@ -198,21 +195,19 @@ public class GoogleAnalyticsInput extends GoogleAnalyticsBase {
 		if (endDate == null || endDate.trim().isEmpty()) {
 			throw new Exception("Missing end date!");
 		}
-		reportRequest = null;
-		RunReportRequest.Builder builder = RunReportRequest.newBuilder();
-		builder.setProperty("properties/" + propertyId);
-		builder.setDateRanges(0, DateRange.newBuilder()
+		reportRequestBuilder = RunReportRequest.newBuilder();
+		reportRequestBuilder.setProperty("properties/" + propertyId);
+		reportRequestBuilder.setDateRanges(0, DateRange.newBuilder()
 				.setStartDate(startDate)
 				.setEndDate(endDate));
-		builder.setKeepEmptyRows(keepEmptyRows);
-		setupDimensions(builder);
-		setupMetrics(builder);
-		setupDimensionFilters(builder);
-		setupMetricsFilters(builder);
-		buildOrderBys(builder);
+		reportRequestBuilder.setKeepEmptyRows(keepEmptyRows);
+		setupDimensions(reportRequestBuilder);
+		setupMetrics(reportRequestBuilder);
+		setupDimensionFilters(reportRequestBuilder);
+		setupMetricsFilters(reportRequestBuilder);
+		buildOrderBys(reportRequestBuilder);
 		doExecute();
-		overallPlainRowCount = 0;
-		totalsDelivered = false;
+		currentOverallPlainRowCount = 0;
 		startIndex = 1;
 		maxCountNormalizedValues = 0;
 		currentNormalizedValueIndex = 0;
@@ -227,6 +222,7 @@ public class GoogleAnalyticsInput extends GoogleAnalyticsBase {
 	private String errorMessage = null;
 	
 	private void doExecute() throws Exception {
+		reportRequest = reportRequestBuilder.build();
 		int waitTime = 1000;
 		for (currentAttempt = 0; currentAttempt < maxRetriesInCaseOfErrors; currentAttempt++) {
 			errorCode = 0;
@@ -259,6 +255,7 @@ public class GoogleAnalyticsInput extends GoogleAnalyticsBase {
 		if (response == null) {
 			throw new Exception("No response received!");
 		}
+		expectedTotalPlainRowCount = response.getRowCount();
 		lastResultSet = response.getRowsList();
 		if (lastResultSet == null) {
 			// fake an empty result set to avoid breaking further processing
@@ -267,7 +264,7 @@ public class GoogleAnalyticsInput extends GoogleAnalyticsBase {
 		lastFetchedRowCount = lastResultSet.size();
 		currentPlainRowIndex = 0;
 	}
-
+	
 	/**
 	 * checks if more result set available
 	 * @return true if more data sets available
@@ -277,9 +274,17 @@ public class GoogleAnalyticsInput extends GoogleAnalyticsBase {
 		if (response == null) {
 			throw new IllegalStateException("No query executed before");
 		}
-		if (addTotalsRecord && totalsDelivered == false) {
-			return true;
+		// check if we have reached the expected row count
+		// We need to configure limit and offset and rerun the report again
+		// the current index == the number currently fetched rows and the overall count is lower the expect total number
+		if (currentPlainRowIndex == lastFetchedRowCount
+				&& lastFetchedRowCount > 0
+				&& (fetchSize == 0 || (lastFetchedRowCount == fetchSize))) {
+			startIndex = startIndex + lastFetchedRowCount;
+			
+			doExecute();
 		}
+		
 		if (lastFetchedRowCount > 0 && currentPlainRowIndex < lastFetchedRowCount) {
 			return true;
 		} else {
@@ -295,14 +300,9 @@ public class GoogleAnalyticsInput extends GoogleAnalyticsBase {
 		if (response == null) {
 			throw new IllegalStateException("No query executed before");
 		}
-		overallPlainRowCount++;
-		if (addTotalsRecord && totalsDelivered == false) {
-			totalsDelivered = true;
-			return getTotalsDataset();
-		} else {
-			Row row = lastResultSet.get(currentPlainRowIndex++); 
-			return buildRecord(row);
-		}
+		currentOverallPlainRowCount++;
+		Row row = lastResultSet.get(currentPlainRowIndex++); 
+		return buildRecord(row);
 	}
 
 	private List<String> buildRecord(Row row) {
@@ -394,7 +394,7 @@ public class GoogleAnalyticsInput extends GoogleAnalyticsBase {
 			DimensionValue dm = new DimensionValue();
 			dm.name = dimName.trim();
 			dm.value = oneRow.get(index);
-			dm.rowNum = overallPlainRowCount;
+			dm.rowNum = currentOverallPlainRowCount;
         	if (excludeDate && DATE_DIM.equals(dm.name.trim().toLowerCase())) {
         		try {
         			if (dm.value != null) {
@@ -422,7 +422,7 @@ public class GoogleAnalyticsInput extends GoogleAnalyticsBase {
 			if (mv.name == null) {
 				mv.name = metric.getExpression();
 			}
-			mv.rowNum = overallPlainRowCount;
+			mv.rowNum = currentOverallPlainRowCount;
 			int countDimensions = listDimensions.size();
 			String valueStr = oneRow.get(index + countDimensions);
 			try {
@@ -435,14 +435,6 @@ public class GoogleAnalyticsInput extends GoogleAnalyticsBase {
 		currentResultRowMetricValues = oneRowMetricValues;
 		setMaxCountNormalizedValues(currentResultRowMetricValues.size());
 		return oneRowMetricValues;
-	}
-
-	/**
-	 * if true, add the totals data set at the end of the 
-	 * @param addTotals
-	 */
-	public void deliverTotalsDataset(boolean addTotals) {
-		this.addTotalsRecord = addTotals;
 	}
 
 	public List<String> getTotalsDataset() {
@@ -471,15 +463,11 @@ public class GoogleAnalyticsInput extends GoogleAnalyticsBase {
 	}
 
 	public int getCurrentIndexOverAll() {
-		if (addTotalsRecord && totalsDelivered == false) {
-			return 0;
-		} else {
-			return startIndex + currentPlainRowIndex;
-		}
+		return startIndex + currentPlainRowIndex;
 	}
 
 	public int getOverAllCountRows() {
-		return overallPlainRowCount;
+		return currentOverallPlainRowCount;
 	}
 
 	public Integer getTotalAffectedRows() {
@@ -536,6 +524,7 @@ public class GoogleAnalyticsInput extends GoogleAnalyticsBase {
 		return listDimensions;
 	}
 	
+
 	private void setupDimensionFilters(RunReportRequest.Builder builder) throws Exception {
 		if (dimensionFilters != null) {
 			String[] filters = dimensionFilters.split(",");
@@ -543,154 +532,28 @@ public class GoogleAnalyticsInput extends GoogleAnalyticsBase {
 				for (String f : filters) {
 					builder.setDimensionFilter(FilterExpression.newBuilder()
 							.setAndGroup(FilterExpressionList.newBuilder()
-									.addExpressions(buildStringFilterExpression(f))));
+									.addExpressions(FilterExpressionBuilder.buildStringFilterExpression(f))));
 				}
 			} else if (filters.length == 1) {
-				builder.setDimensionFilter(buildStringFilterExpression(filters[0]));
+				builder.setDimensionFilter(FilterExpressionBuilder.buildStringFilterExpression(filters[0]));
 			}
 		}
 	}
 	
-	private static final String STRING_FILTER_OP_EXACT        = "==";
-	private static final String STRING_FILTER_OP_EXACT_NOT    = "!=";
-	private static final String STRING_FILTER_OP_BEGINS_WITH  = "=^";
-	private static final String STRING_FILTER_OP_ENDS_WITH    = "=$";
-	private static final String STRING_FILTER_OP_REGEX_INCL   = "=~";
-	private static final String STRING_FILTER_OP_REGEX_EXCL   = "!~";
-	private static final String STRING_FILTER_OP_CONTAINS     = "=@";
-	private static final String STRING_FILTER_OP_CONTAINS_NOT = "!@";
-	
-	private FilterExpression buildStringFilterExpression(String filterStr) throws Exception {
-		if (filterStr != null && filterStr.trim().isEmpty() == false) {
-			String operand1 = null;
-			String operand2 = null;
-			FilterExpression fe = null;
-			int posOp = -1;
-			posOp = filterStr.indexOf(STRING_FILTER_OP_EXACT);
-			if (posOp > 0) {
-				operand1 = filterStr.substring(0, posOp).trim();
-				operand2 = filterStr.substring(posOp+2).trim();
-				fe = FilterExpression.newBuilder()
-						.setFilter(Filter.newBuilder()
-							.setFieldName(operand1)
-							.setStringFilter(StringFilter.newBuilder()
-								.setMatchType(MatchType.EXACT)
-								.setCaseSensitive(false)
-								.setValue(operand2))
-							.build())
-						.build();
+
+	private void setupMetricsFilters(RunReportRequest.Builder builder) throws Exception {
+		if (metricsFilters != null) {
+			String[] filters = metricsFilters.split(",");
+			if (filters.length > 1) {
+				for (String f : filters) {
+					builder.setMetricFilter(FilterExpression.newBuilder()
+							.setAndGroup(FilterExpressionList.newBuilder()
+									.addExpressions(FilterExpressionBuilder.buildNumericFilterExpression(f))));
+				}
+			} else if (filters.length == 1) {
+				builder.setMetricFilter(FilterExpressionBuilder.buildNumericFilterExpression(filters[0]));
 			}
-			posOp = filterStr.indexOf(STRING_FILTER_OP_EXACT_NOT);
-			if (posOp > 0) {
-				operand1 = filterStr.substring(0, posOp).trim();
-				operand2 = filterStr.substring(posOp+2).trim();
-				fe = FilterExpression.newBuilder()
-						.setNotExpression(FilterExpression.newBuilder()
-							.setFilter(Filter.newBuilder()
-								.setFieldName(operand1)
-								.setStringFilter(StringFilter.newBuilder()
-									.setMatchType(MatchType.EXACT)
-									.setCaseSensitive(false)
-									.setValue(operand2)))
-								.build())
-						.build();
-			}
-			posOp = filterStr.indexOf(STRING_FILTER_OP_BEGINS_WITH);
-			if (posOp > 0) {
-				operand1 = filterStr.substring(0, posOp).trim();
-				operand2 = filterStr.substring(posOp+2).trim();
-				fe = FilterExpression.newBuilder()
-						.setFilter(Filter.newBuilder()
-							.setFieldName(operand1)
-							.setStringFilter(StringFilter.newBuilder()
-								.setMatchType(MatchType.BEGINS_WITH)
-								.setCaseSensitive(false)
-								.setValue(operand2))
-							.build())
-						.build();
-			}
-			posOp = filterStr.indexOf(STRING_FILTER_OP_ENDS_WITH);
-			if (posOp > 0) {
-				operand1 = filterStr.substring(0, posOp).trim();
-				operand2 = filterStr.substring(posOp+2).trim();
-				fe = FilterExpression.newBuilder()
-						.setFilter(Filter.newBuilder()
-							.setFieldName(operand1)
-							.setStringFilter(StringFilter.newBuilder()
-								.setMatchType(MatchType.ENDS_WITH)
-								.setCaseSensitive(false)
-								.setValue(operand2))
-							.build())
-						.build();
-			}
-			posOp = filterStr.indexOf(STRING_FILTER_OP_REGEX_INCL);
-			if (posOp > 0) {
-				operand1 = filterStr.substring(0, posOp).trim();
-				operand2 = filterStr.substring(posOp+2).trim();
-				fe = FilterExpression.newBuilder()
-						.setFilter(Filter.newBuilder()
-							.setFieldName(operand1)
-							.setStringFilter(StringFilter.newBuilder()
-								.setMatchType(MatchType.FULL_REGEXP)
-								.setCaseSensitive(false)
-								.setValue(operand2))
-							.build())
-						.build();
-			}
-			posOp = filterStr.indexOf(STRING_FILTER_OP_REGEX_EXCL);
-			if (posOp > 0) {
-				operand1 = filterStr.substring(0, posOp).trim();
-				operand2 = filterStr.substring(posOp+2).trim();
-				fe = FilterExpression.newBuilder()
-						.setNotExpression(FilterExpression.newBuilder()
-							.setFilter(Filter.newBuilder()
-								.setFieldName(operand1)
-								.setStringFilter(StringFilter.newBuilder()
-									.setMatchType(MatchType.FULL_REGEXP)
-									.setCaseSensitive(false)
-									.setValue(operand2)))
-								.build())
-						.build();
-			}
-			posOp = filterStr.indexOf(STRING_FILTER_OP_CONTAINS);
-			if (posOp > 0) {
-				operand1 = filterStr.substring(0, posOp).trim();
-				operand2 = filterStr.substring(posOp+2).trim();
-				fe = FilterExpression.newBuilder()
-						.setFilter(Filter.newBuilder()
-							.setFieldName(operand1)
-							.setStringFilter(StringFilter.newBuilder()
-								.setMatchType(MatchType.CONTAINS)
-								.setCaseSensitive(false)
-								.setValue(operand2))
-							.build())
-						.build();
-			}
-			posOp = filterStr.indexOf(STRING_FILTER_OP_CONTAINS_NOT);
-			if (posOp > 0) {
-				operand1 = filterStr.substring(0, posOp).trim();
-				operand2 = filterStr.substring(posOp+2).trim();
-				fe = FilterExpression.newBuilder()
-						.setNotExpression(FilterExpression.newBuilder()
-							.setFilter(Filter.newBuilder()
-								.setFieldName(operand1)
-								.setStringFilter(StringFilter.newBuilder()
-									.setMatchType(MatchType.CONTAINS)
-									.setCaseSensitive(false)
-							.setValue(operand2)))
-						.build())
-					.build();
-			} else {
-				throw new Exception("Unknown or missing operator in filter: " + filterStr);
-			}
-			return fe;
-			
 		}
-		return FilterExpression.newBuilder().build(); // dummy
-	}
-
-	private void setupMetricsFilters(RunReportRequest.Builder builder) {
-
 	}
 
 	private Metric buildMetric(String metricStr) {
