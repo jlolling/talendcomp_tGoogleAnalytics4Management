@@ -1,4 +1,3 @@
-# Talend User-Component tGoogleAnalyticsInput
-This component is dedicated to work with the Google Analytics API v3 and v4.
-The current releases including documentation can be get on Talend Exchange:
-https://exchange.talend.com
+# Talend User-Component tGoogleAnalyticsGA4Input
+This component is dedicated to work with the Google Analytics 4 (GA4.
+The current state of the code is not ready to run yet.
