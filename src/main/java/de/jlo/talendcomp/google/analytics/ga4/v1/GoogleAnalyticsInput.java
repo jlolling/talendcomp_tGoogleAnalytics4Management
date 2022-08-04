@@ -51,9 +51,9 @@ public class GoogleAnalyticsInput extends GoogleAnalyticsBase {
 	private String dimensions = null;
 	private String sortsByDimension = null;
 	private String dimensionFilters = null;
-	private String metricsFilters = null;
+	private String metricFilters = null;
 	private String propertyId;
-	private int fetchSize = 0;
+	private int fetchSize = 10000;
 	private int lastFetchedRowCount = 0;
 	private int expectedTotalPlainRowCount = 0;
 	private int currentOverallPlainRowCount = 0;
@@ -62,7 +62,7 @@ public class GoogleAnalyticsInput extends GoogleAnalyticsBase {
 	private List<DimensionValue> currentResultRowDimensionValues;
 	private List<MetricValue> currentResultRowMetricValues;
 	private Date currentDate;
-	private static final String DATE_DIM = "ga:date";
+	private static final String DATE_DIM = "date";
 	private boolean excludeDate = false; 
 	private List<Dimension> listDimensions = null;
 	private List<Metric> listMetrics = null;
@@ -88,29 +88,31 @@ public class GoogleAnalyticsInput extends GoogleAnalyticsBase {
 	 * 
 	 * @param fetchSize
 	 */
-	public void setFetchSize(int fetchSize) {
-		this.fetchSize = fetchSize;
+	public void setFetchSize(Integer fetchSize) {
+		if (fetchSize != null && fetchSize > 0) {
+			this.fetchSize = fetchSize;
+		}
 	}
 
-	public void setProfileId(String profileId) {
-		if (profileId == null || profileId.trim().isEmpty()) {
-			throw new IllegalArgumentException("Profile-ID (View-ID) cannot be null or empty");
+	public void setPropertyId(String propertyId) {
+		if (propertyId == null || propertyId.trim().isEmpty()) {
+			throw new IllegalArgumentException("PropertyId cannot be null or empty");
 		}
-		this.propertyId = profileId;
+		this.propertyId = propertyId;
 	}
 
-	public void setProfileId(int profileId) {
-		if (profileId == 0) {
-			throw new IllegalArgumentException("Profile-ID (View-ID) must be greater than 0");
+	public void setPropertyId(Integer propertyId) {
+		if (propertyId == null || propertyId < 1) {
+			throw new IllegalArgumentException("PropertyId cannot be 0 or empty");
 		}
-		this.propertyId = String.valueOf(profileId);
+		this.propertyId = String.valueOf(propertyId);
 	}
 
-	public void setProfileId(Long profileId) {
-		if (profileId == null) {
-			throw new IllegalArgumentException("profileId cannot be null.");
+	public void setPropertyId(Long propertyId) {
+		if (propertyId == null || propertyId < 1) {
+			throw new IllegalArgumentException("PropertyId cannot be 0 or empty");
 		}
-		this.propertyId = Long.toString(profileId);
+		this.propertyId = String.valueOf(propertyId);
 	}
 
 	/**
@@ -183,9 +185,25 @@ public class GoogleAnalyticsInput extends GoogleAnalyticsBase {
 			this.dimensionFilters = null;
 		}
 	}
+	
+	/**
+	 * use operators like:
+	 * == exact match
+	 * =@ contains
+	 * =~ matches regular expression
+	 * != does not contains
+	 * separate filters with , for OR and ; for AND
+	 * @param filters
+	 */
+	public void setMetricFilters(String filters) {
+		if (filters != null && filters.trim().isEmpty() == false) {
+			this.metricFilters = filters.trim();
+		} else {
+			this.metricFilters = null;
+		}
+	}
 
-	private void executeDataQuery() throws Exception {
-		response = null;
+	private void prepareInitialRequestParameters() throws Exception {
 		if (propertyId == null || propertyId.length() < 5) {
 			throw new Exception("propertyId is missing or not long enough");
 		}
@@ -197,37 +215,40 @@ public class GoogleAnalyticsInput extends GoogleAnalyticsBase {
 		}
 		reportRequestBuilder = RunReportRequest.newBuilder();
 		reportRequestBuilder.setProperty("properties/" + propertyId);
-		reportRequestBuilder.setDateRanges(0, DateRange.newBuilder()
+		reportRequestBuilder.setKeepEmptyRows(keepEmptyRows);
+		reportRequestBuilder.setOffset(0L);
+		reportRequestBuilder.setLimit(fetchSize);
+		setupDimensions();
+		setupMetrics();
+		setupDimensionFilters();
+		setupMetricsFilters();
+		setupOrderBys();
+		reportRequestBuilder.addDateRanges(DateRange.newBuilder()
 				.setStartDate(startDate)
 				.setEndDate(endDate));
-		reportRequestBuilder.setKeepEmptyRows(keepEmptyRows);
-		setupDimensions(reportRequestBuilder);
-		setupMetrics(reportRequestBuilder);
-		setupDimensionFilters(reportRequestBuilder);
-		setupMetricsFilters(reportRequestBuilder);
-		buildOrderBys(reportRequestBuilder);
+	}
+	
+	public void executeQuery() throws Exception {
+		prepareInitialRequestParameters();
 		doExecute();
 		currentOverallPlainRowCount = 0;
-		startIndex = 1;
+		startIndex = 0;
 		maxCountNormalizedValues = 0;
 		currentNormalizedValueIndex = 0;
 	}
 			
-	public void executeQuery() throws Exception {
-		executeDataQuery();
-	}
-	
 	private int maxRetriesInCaseOfErrors = 5;
 	private int currentAttempt = 0;
 	private String errorMessage = null;
 	
 	private void doExecute() throws Exception {
 		reportRequest = reportRequestBuilder.build();
+		response = null;
 		int waitTime = 1000;
 		for (currentAttempt = 0; currentAttempt < maxRetriesInCaseOfErrors; currentAttempt++) {
 			errorCode = 0;
 			try {
-				response = getClient().runReport(reportRequest);
+				response = getAnalyticsClient().runReport(reportRequest);
 				success = true;
 				break;
 			} catch (ApiException apie) {
@@ -236,15 +257,15 @@ public class GoogleAnalyticsInput extends GoogleAnalyticsBase {
 				errorMessage = apie.getMessage();
 				errorCode = apie.getStatusCode().getCode().getHttpStatusCode();
 				if (apie.isRetryable() == false) {
-					throw new Exception("Request failed: " + apie.getMessage(), apie);
+					throw new Exception("Request is not retryable and failed: " + apie.getMessage(), apie);
 				}
 				if (currentAttempt == (maxRetriesInCaseOfErrors - 1)) {
-					error("All repetition of request failed:" + apie.getMessage(), apie);
+					error("All retries (#" + (currentAttempt+1) + " of " + maxRetriesInCaseOfErrors + ") request failed:" + apie.getMessage(), apie);
 					throw apie;
 				} else {
 					// wait
 					try {
-						info("Retry request in " + waitTime + "ms");
+						info("Retry #" + (currentAttempt+1) + " request in " + waitTime + "ms");
 						Thread.sleep(waitTime);
 					} catch (InterruptedException ie) {}
 					int random = (int) Math.random() * 500;
@@ -274,17 +295,17 @@ public class GoogleAnalyticsInput extends GoogleAnalyticsBase {
 		if (response == null) {
 			throw new IllegalStateException("No query executed before");
 		}
-		// check if we have reached the expected row count
-		// We need to configure limit and offset and rerun the report again
-		// the current index == the number currently fetched rows and the overall count is lower the expect total number
-		if (currentPlainRowIndex == lastFetchedRowCount
-				&& lastFetchedRowCount > 0
-				&& (fetchSize == 0 || (lastFetchedRowCount == fetchSize))) {
+		// the initial call doExecute will be done before.
+		// check if a new call is necessary
+		if (currentPlainRowIndex == lastFetchedRowCount // we are at the end of the current fetched records
+				&& lastFetchedRowCount > 0 // there are fetched rows last time
+				&& currentOverallPlainRowCount < expectedTotalPlainRowCount) { // and we have not reached the final end
+			// prepare the request for the next records
 			startIndex = startIndex + lastFetchedRowCount;
-			
+			reportRequestBuilder.setOffset(startIndex);
+			// run first or next request
 			doExecute();
 		}
-		
 		if (lastFetchedRowCount > 0 && currentPlainRowIndex < lastFetchedRowCount) {
 			return true;
 		} else {
@@ -470,13 +491,6 @@ public class GoogleAnalyticsInput extends GoogleAnalyticsBase {
 		return currentOverallPlainRowCount;
 	}
 
-	public Integer getTotalAffectedRows() {
-		if (response == null) {
-			throw new IllegalStateException("No query executed");
-		}
-		return startIndex + lastFetchedRowCount;
-	}
-
 	@Override
 	public Date getCurrentDate() throws ParseException {
 		return currentDate;
@@ -506,52 +520,52 @@ public class GoogleAnalyticsInput extends GoogleAnalyticsBase {
 		return errorMessage;
 	}
 	
-	private List<Dimension> setupDimensions(RunReportRequest.Builder builder) {
+	private void setupDimensions() {
+		reportRequestBuilder.clearDimensions();
+		listDimensions = new ArrayList<Dimension>();
 		if (dimensions != null) {
-			listDimensions = new ArrayList<Dimension>();
 			String[] dimArray = dimensions.split(",");
 			int index = 0;
 			for (String dimName : dimArray) {
 				Dimension dimension = Dimension.newBuilder().setName(dimName).build();
 				listDimensions.add(dimension);
-				builder.setDimensions(index, dimension);
+				reportRequestBuilder.addDimensions(dimension);
 				debug("add dimension: " + dimension.toString() + " at " + index);
 				index++;
 			}
-		} else {
-			listDimensions = new ArrayList<Dimension>();
 		}
-		return listDimensions;
 	}
 	
 
-	private void setupDimensionFilters(RunReportRequest.Builder builder) throws Exception {
+	private void setupDimensionFilters() throws Exception {
+		reportRequestBuilder.clearDimensionFilter();
 		if (dimensionFilters != null) {
 			String[] filters = dimensionFilters.split(",");
 			if (filters.length > 1) {
 				for (String f : filters) {
-					builder.setDimensionFilter(FilterExpression.newBuilder()
+					reportRequestBuilder.setDimensionFilter(FilterExpression.newBuilder()
 							.setAndGroup(FilterExpressionList.newBuilder()
 									.addExpressions(FilterExpressionBuilder.buildStringFilterExpression(f))));
 				}
 			} else if (filters.length == 1) {
-				builder.setDimensionFilter(FilterExpressionBuilder.buildStringFilterExpression(filters[0]));
+				reportRequestBuilder.setDimensionFilter(FilterExpressionBuilder.buildStringFilterExpression(filters[0]));
 			}
 		}
 	}
 	
 
-	private void setupMetricsFilters(RunReportRequest.Builder builder) throws Exception {
-		if (metricsFilters != null) {
-			String[] filters = metricsFilters.split(",");
+	private void setupMetricsFilters() throws Exception {
+		reportRequestBuilder.clearMetricFilter();
+		if (metricFilters != null) {
+			String[] filters = metricFilters.split(",");
 			if (filters.length > 1) {
 				for (String f : filters) {
-					builder.setMetricFilter(FilterExpression.newBuilder()
+					reportRequestBuilder.setMetricFilter(FilterExpression.newBuilder()
 							.setAndGroup(FilterExpressionList.newBuilder()
 									.addExpressions(FilterExpressionBuilder.buildNumericFilterExpression(f))));
 				}
 			} else if (filters.length == 1) {
-				builder.setMetricFilter(FilterExpressionBuilder.buildNumericFilterExpression(filters[0]));
+				reportRequestBuilder.setMetricFilter(FilterExpressionBuilder.buildNumericFilterExpression(filters[0]));
 			}
 		}
 	}
@@ -559,33 +573,35 @@ public class GoogleAnalyticsInput extends GoogleAnalyticsBase {
 	private Metric buildMetric(String metricStr) {
 		if (metricStr != null && metricStr.trim().isEmpty() == false) {
 			metricStr = metricStr.trim();
-			Metric metric = null;
 			Metric.Builder metricBuilder = Metric.newBuilder();
 			int eqPos = metricStr.indexOf("=");
 			if (eqPos != -1) {
 				String aliasAndType = metricStr.substring(0, eqPos).trim();
 				if (aliasAndType != null && aliasAndType.isEmpty() == false) {
 					metricBuilder.setName(aliasAndType);
+				} else {
+					throw new IllegalStateException("Invalid calculated metric (without name) found: '" + metricStr + "'");
 				}
 				if (eqPos < metricStr.length() - 2) {
-					String expression = metricStr.substring(eqPos + 1);
+					String expression = metricStr.substring(eqPos + 1).trim();
 					metricBuilder.setExpression(expression);
 				} else {
-					throw new IllegalStateException("Invalid metric (without expression) found: " + metricStr);
+					throw new IllegalStateException("Invalid calculated metric (without expression) found: '" + metricStr + "'");
 				}
 			} else {
-				metricBuilder.setExpression(metricStr);
+				metricBuilder.setName(metricStr);
 			}
-			return metric;
+			return metricBuilder.build();
 		} else {
 			return null;
 		}
 	}
 
-	private void setupMetrics(RunReportRequest.Builder builder) {
+	private void setupMetrics() {
 		if (metrics == null) {
 			throw new IllegalStateException("Metrics are not set!");
 		}
+		reportRequestBuilder.clearMetrics();
 		listMetrics = new ArrayList<Metric>();
 		String[] metricArray = metrics.split(",");
 		// a metric can consists of an alias and the expression separated by =
@@ -594,7 +610,7 @@ public class GoogleAnalyticsInput extends GoogleAnalyticsBase {
 			Metric metric = buildMetric(metricStr);
 			if (metric != null) {
 				listMetrics.add(metric);
-				builder.setMetrics(index, metric);
+				reportRequestBuilder.addMetrics(metric);
 				debug("add metric: " + metric.toString() + " at " + index);
 				index++;
 			}
@@ -604,10 +620,10 @@ public class GoogleAnalyticsInput extends GoogleAnalyticsBase {
 		}
 	}
 	
-	private void buildOrderBys(RunReportRequest.Builder builder) {
+	private void setupOrderBys() {
+		reportRequestBuilder.clearOrderBys();
 		if (sortsByDimension != null) {
 			String[] sortArray = sortsByDimension.split(",");
-			int index = 0;
 			for (String sort : sortArray) {
 				if (sort != null && sort.trim().isEmpty() == false) {
 					sort = sort.trim();
@@ -619,11 +635,18 @@ public class GoogleAnalyticsInput extends GoogleAnalyticsBase {
 						orderbyBuilder.setDesc(false);
 						orderbyBuilder.setDimension(DimensionOrderBy.newBuilder().setDimensionName(sort));
 					}
-					builder.setOrderBys(index, orderbyBuilder);
-					index++;
+					reportRequestBuilder.addOrderBys(orderbyBuilder);
 				}
 			}
 		}
+	}
+
+	public int getExpectedTotalPlainRowCount() {
+		return expectedTotalPlainRowCount;
+	}
+
+	public int getFetchSize() {
+		return fetchSize;
 	}
 	
 }

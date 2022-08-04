@@ -31,22 +31,21 @@ public class FilterExpressionBuilder {
 			posOp = oneFilterTerm.indexOf(FILTER_OP_EXACT);
 			if (posOp > 0) {
 				operand1 = oneFilterTerm.substring(0, posOp).trim();
-				operand2 = oneFilterTerm.substring(posOp+2).trim();
+				operand2 = oneFilterTerm.substring(posOp + 2).trim();
 				fe = FilterExpression.newBuilder()
 						.setFilter(Filter.newBuilder()
 							.setFieldName(operand1)
 							.setStringFilter(StringFilter.newBuilder()
 								.setMatchType(MatchType.EXACT)
 								.setCaseSensitive(false)
-								.setValue(operand2))
-							.build())
+								.setValue(operand2)))
 						.build();
 				return fe;
 			}
 			posOp = oneFilterTerm.indexOf(FILTER_OP_EXACT_NOT);
 			if (posOp > 0) {
 				operand1 = oneFilterTerm.substring(0, posOp).trim();
-				operand2 = oneFilterTerm.substring(posOp+2).trim();
+				operand2 = oneFilterTerm.substring(posOp + 2).trim();
 				fe = FilterExpression.newBuilder()
 						.setNotExpression(FilterExpression.newBuilder()
 							.setFilter(Filter.newBuilder()
@@ -54,60 +53,56 @@ public class FilterExpressionBuilder {
 								.setStringFilter(StringFilter.newBuilder()
 									.setMatchType(MatchType.EXACT)
 									.setCaseSensitive(false)
-									.setValue(operand2)))
-								.build())
+									.setValue(operand2))))
 						.build();
 				return fe;
 			}
 			posOp = oneFilterTerm.indexOf(STRING_FILTER_OP_BEGINS_WITH);
 			if (posOp > 0) {
 				operand1 = oneFilterTerm.substring(0, posOp).trim();
-				operand2 = oneFilterTerm.substring(posOp+2).trim();
+				operand2 = oneFilterTerm.substring(posOp + 2).trim();
 				fe = FilterExpression.newBuilder()
 						.setFilter(Filter.newBuilder()
 							.setFieldName(operand1)
 							.setStringFilter(StringFilter.newBuilder()
 								.setMatchType(MatchType.BEGINS_WITH)
 								.setCaseSensitive(false)
-								.setValue(operand2))
-							.build())
+								.setValue(operand2)))
 						.build();
 				return fe;
 			}
 			posOp = oneFilterTerm.indexOf(STRING_FILTER_OP_ENDS_WITH);
 			if (posOp > 0) {
 				operand1 = oneFilterTerm.substring(0, posOp).trim();
-				operand2 = oneFilterTerm.substring(posOp+2).trim();
+				operand2 = oneFilterTerm.substring(posOp + 2).trim();
 				fe = FilterExpression.newBuilder()
 						.setFilter(Filter.newBuilder()
 							.setFieldName(operand1)
 							.setStringFilter(StringFilter.newBuilder()
 								.setMatchType(MatchType.ENDS_WITH)
 								.setCaseSensitive(false)
-								.setValue(operand2))
-							.build())
+								.setValue(operand2)))
 						.build();
 				return fe;
 			}
 			posOp = oneFilterTerm.indexOf(STRING_FILTER_OP_REGEX_INCL);
 			if (posOp > 0) {
 				operand1 = oneFilterTerm.substring(0, posOp).trim();
-				operand2 = oneFilterTerm.substring(posOp+2).trim();
+				operand2 = oneFilterTerm.substring(posOp + 2).trim();
 				fe = FilterExpression.newBuilder()
 						.setFilter(Filter.newBuilder()
 							.setFieldName(operand1)
 							.setStringFilter(StringFilter.newBuilder()
 								.setMatchType(MatchType.FULL_REGEXP)
 								.setCaseSensitive(false)
-								.setValue(operand2))
-							.build())
+								.setValue(operand2)))
 						.build();
 				return fe;
 			}
 			posOp = oneFilterTerm.indexOf(STRING_FILTER_OP_REGEX_EXCL);
 			if (posOp > 0) {
 				operand1 = oneFilterTerm.substring(0, posOp).trim();
-				operand2 = oneFilterTerm.substring(posOp+2).trim();
+				operand2 = oneFilterTerm.substring(posOp + 2).trim();
 				fe = FilterExpression.newBuilder()
 						.setNotExpression(FilterExpression.newBuilder()
 							.setFilter(Filter.newBuilder()
@@ -115,30 +110,28 @@ public class FilterExpressionBuilder {
 								.setStringFilter(StringFilter.newBuilder()
 									.setMatchType(MatchType.FULL_REGEXP)
 									.setCaseSensitive(false)
-									.setValue(operand2)))
-								.build())
+									.setValue(operand2))))
 						.build();
 				return fe;
 			}
 			posOp = oneFilterTerm.indexOf(STRING_FILTER_OP_CONTAINS);
 			if (posOp > 0) {
 				operand1 = oneFilterTerm.substring(0, posOp).trim();
-				operand2 = oneFilterTerm.substring(posOp+2).trim();
+				operand2 = oneFilterTerm.substring(posOp + 2).trim();
 				fe = FilterExpression.newBuilder()
 						.setFilter(Filter.newBuilder()
 							.setFieldName(operand1)
 							.setStringFilter(StringFilter.newBuilder()
 								.setMatchType(MatchType.CONTAINS)
 								.setCaseSensitive(false)
-								.setValue(operand2))
-							.build())
+								.setValue(operand2)))
 						.build();
 				return fe;
 			}
 			posOp = oneFilterTerm.indexOf(STRING_FILTER_OP_CONTAINS_NOT);
 			if (posOp > 0) {
 				operand1 = oneFilterTerm.substring(0, posOp).trim();
-				operand2 = oneFilterTerm.substring(posOp+2).trim();
+				operand2 = oneFilterTerm.substring(posOp + 2).trim();
 				fe = FilterExpression.newBuilder()
 						.setNotExpression(FilterExpression.newBuilder()
 							.setFilter(Filter.newBuilder()
@@ -146,9 +139,8 @@ public class FilterExpressionBuilder {
 								.setStringFilter(StringFilter.newBuilder()
 									.setMatchType(MatchType.CONTAINS)
 									.setCaseSensitive(false)
-							.setValue(operand2)))
-						.build())
-					.build();
+							.setValue(operand2))))
+						.build();
 				return fe;
 			}
 			if (posOp == -1) {

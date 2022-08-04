@@ -29,10 +29,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.StringTokenizer;
 
-import com.google.api.client.googleapis.json.GoogleJsonError;
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.gax.rpc.ApiException;
-import com.google.api.client.googleapis.json.GoogleJsonError.ErrorInfo;
+
 
 public class Util {
 	
@@ -196,58 +194,5 @@ public class Util {
 			throw new Exception("convertToBigDecimal:" + value + " failed:" + e.getMessage(), e);
 		}
 	}
-
-	private static IgnorableError[] listIgnorableErrors = {
-			new IgnorableError(403, "userRateLimitExceeded"),
-			new IgnorableError(403, "quotaExceeded"),
-			new IgnorableError(500, null),
-			new IgnorableError(503, null)
-		};
-		
-		public static boolean canBeIgnored(Exception e) {
-			boolean ignore = false;
-			if (e instanceof ApiException) {
-				GoogleJsonResponseException gre = (GoogleJsonResponseException) e;
-				GoogleJsonError gje = gre.getDetails();
-				if (gje != null) {
-					List<ErrorInfo> errors = gje.getErrors();
-					if (errors != null && errors.isEmpty() == false) {
-						ErrorInfo ei = errors.get(0);
-						for (IgnorableError error : listIgnorableErrors) {
-							if (error.code == gre.getStatusCode()) {
-								if (error.reason == null
-										|| error.reason.equals(ei.getReason())) {
-									ignore = true;
-									break;
-								}
-							}
-						}
-					}
-				}
-			} else if (e instanceof SocketException) {
-				if (e.getMessage().contains("reset")) {
-					ignore = true;
-				}
-			}
-			return ignore;
-		}
-		
-		public static class IgnorableError {
-			
-			public IgnorableError(int code, String reason) {
-				this.code = code;
-				this.reason = reason;
-			}
-			
-			private int code = 0;
-			private String reason = null;
-			
-			public int getCode() {
-				return code;
-			}
-			public String getReason() {
-				return reason;
-			}
-		}
 
 }

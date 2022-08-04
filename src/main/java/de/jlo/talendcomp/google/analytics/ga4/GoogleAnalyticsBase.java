@@ -42,8 +42,12 @@ public class GoogleAnalyticsBase {
 	private boolean success = true;
 	private BetaAnalyticsDataClient analyticsDataClient = null;
 	
-	protected BetaAnalyticsDataClient getClient() {
+	protected BetaAnalyticsDataClient getAnalyticsClient() {
 		return analyticsDataClient;
+	}
+	
+	public void setAnalyticsClient(BetaAnalyticsDataClient analyticsDataClient) {
+		this.analyticsDataClient = analyticsDataClient;
 	}
 
 	public static void putIntoCache(String key, GoogleAnalyticsBase gai) {
@@ -66,9 +70,9 @@ public class GoogleAnalyticsBase {
 		}
 	}
 	
-	public void initialize() throws Exception {
+	public void initializeAnalyticsClient() throws Exception {
 		if (jsonAuthFile == null) {
-			throw new Exception("json credential file is not set successfully");
+			throw new Exception("json credential file is not set");
 		}
 		GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(jsonAuthFile));
 		BetaAnalyticsDataSettings betaAnalyticsDataSettings = BetaAnalyticsDataSettings.newBuilder()
