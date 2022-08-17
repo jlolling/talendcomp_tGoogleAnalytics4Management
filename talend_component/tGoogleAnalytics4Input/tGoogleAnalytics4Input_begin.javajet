@@ -36,7 +36,6 @@
 		sorts = "null";
 	}
 	String timeout = ElementParameterParser.getValue(node, "__TIMEOUT_IN_SEC__");
-	String timeOffset = ElementParameterParser.getValue(node, "__TIME_OFFSET__");
 	String fetchSize = ElementParameterParser.getValue(node, "__FETCH_SIZE__");
 	String maxAttempts = ElementParameterParser.getValue(node, "__MAX_ATTEMPTS__");
 	String numberFormatLocale = ElementParameterParser.getValue(node, "__NUMBERFORMAT_LOCALE__");
@@ -88,9 +87,6 @@
 		<%=cid%>.setJsonCredentialFile(<%=keyFile%>);
 <% if (timeout != null && timeout.trim().isEmpty() == false) { %>
 		<%=cid%>.setTimeoutInSeconds(<%=timeout%>);
-<% } %>
-<% if (timeOffset != null && timeOffset.trim().isEmpty() == false) { %>
-		<%=cid%>.setTimeMillisOffsetToPast(<%=timeOffset%>);
 <% } %>
 <% if (fetchSize != null && fetchSize.trim().isEmpty() == false) { %>
 		<%=cid%>.setFetchSize(<%=fetchSize%>);
