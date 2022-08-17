@@ -36,7 +36,6 @@ public class GoogleAnalyticsBase {
 	private static final Map<String, GoogleAnalyticsBase> clientCache = new HashMap<String, GoogleAnalyticsBase>();
 	private int timeoutInSeconds = 120;
 	private Date currentDate;
-	private long timeMillisOffsetToPast = 10000;
 	private File jsonAuthFile = null;
 	private int errorCode = 0;
 	private boolean success = true;
@@ -131,22 +130,6 @@ public class GoogleAnalyticsBase {
 
 	public int getTimeoutInSeconds() {
 		return timeoutInSeconds;
-	}
-
-	public long getTimeMillisOffsetToPast() {
-		return timeMillisOffsetToPast;
-	}
-
-	public void setTimeMillisOffsetToPast(Long timeMillisOffsetToPast) {
-		if (timeMillisOffsetToPast != null) {
-			this.timeMillisOffsetToPast = timeMillisOffsetToPast.longValue();
-		}
-	}
-
-	public void setTimeMillisOffsetToPast(Integer timeMillisOffsetToPast) {
-		if (timeMillisOffsetToPast != null) {
-			this.timeMillisOffsetToPast = timeMillisOffsetToPast.longValue();
-		}
 	}
 
 }

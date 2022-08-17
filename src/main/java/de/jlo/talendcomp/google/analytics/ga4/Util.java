@@ -15,9 +15,7 @@
  */
 package de.jlo.talendcomp.google.analytics.ga4;
 
-import java.io.IOException;
 import java.math.BigDecimal;
-import java.net.SocketException;
 import java.sql.Timestamp;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
@@ -28,8 +26,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.StringTokenizer;
-
-import com.google.api.gax.rpc.ApiException;
 
 
 public class Util {
