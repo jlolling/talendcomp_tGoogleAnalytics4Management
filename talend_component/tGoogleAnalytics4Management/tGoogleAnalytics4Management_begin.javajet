@@ -1,0 +1,22 @@
+<%@ jet 
+	imports="
+		org.talend.core.model.process.INode 
+		org.talend.core.model.process.ElementParameterParser 
+		org.talend.core.model.metadata.IMetadataTable 
+		org.talend.core.model.metadata.IMetadataColumn 
+		org.talend.core.model.process.IConnection
+		org.talend.designer.codegen.config.CodeGeneratorArgument
+		org.talend.core.model.metadata.types.JavaTypesManager
+		java.util.List
+	" 
+%>
+<% 
+	CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
+	INode node = (INode) codeGenArgument.getArgument();
+	String cid = node.getUniqueName();
+	String keyFile = ElementParameterParser.getValue(node, "__JSON_KEY_FILE__");
+	String timeout = ElementParameterParser.getValue(node, "__TIMEOUT_IN_SEC__");
+	String maxAttempts = ElementParameterParser.getValue(node, "__MAX_ATTEMPTS__");
+%>
+	de.jlo.talendcomp.google.analytics.ga4.manage.v1 <%=cid%> = new de.jlo.talendcomp.google.analytics.ga4.manage.v1.GoogleAnalyticsManagement();
+	

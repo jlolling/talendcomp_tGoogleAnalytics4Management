@@ -3,10 +3,10 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.jlo.talendcomp.google</groupId>
-	<artifactId>jlo-talendcomp-google-analytics4</artifactId>
+	<artifactId>jlo-talendcomp-google-analytics4admin</artifactId>
 	<version>1.0</version>
-	<name>GoogleAnalytics Talend Component for GA4</name>
-		<properties>
+	<name>GoogleAnalytics Talend Component for GA4 Management</name>
+	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<organization>
@@ -20,17 +20,38 @@
 			<url>http://google-api-client-libraries.appspot.com/mavenrepo</url>
 		</repository>
 	</repositories>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>com.google.analytics</groupId>
 			<artifactId>google-analytics-data</artifactId>
-			<version>0.14.1</version>
+			<version>0.16.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.google.api.grpc</groupId>
+					<artifactId>
+						proto-google-analytics-data-v1alpha
+					</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.google.analytics</groupId>
+			<artifactId>google-analytics-admin</artifactId>
+			<version>0.15.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.google.api.grpc</groupId>
+					<artifactId>
+						proto-google-analytics-admin-v1alpha
+					</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.google.auth</groupId>
 			<artifactId>google-auth-library-oauth2-http</artifactId>
-			<version>1.8.1</version>
+			<version>1.12.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
@@ -43,86 +64,86 @@
 			<version>2.18.0</version>
 			<scope>test</scope>
 		</dependency>
-			<dependency>
-				<groupId>io.grpc</groupId>
-				<artifactId>grpc-netty-shaded</artifactId>
-				<version>1.47.0</version>
-			</dependency>
-			<dependency>
-				<groupId>io.grpc</groupId>
-				<artifactId>grpc-alts</artifactId>
-				<version>1.47.0</version>
-			</dependency>
-			<dependency>
-				<groupId>io.grpc</groupId>
-				<artifactId>grpc-grpclb</artifactId>
-				<version>1.47.0</version>
-			</dependency>
-			<dependency>
-				<groupId>org.conscrypt</groupId>
-				<artifactId>conscrypt-openjdk-uber</artifactId>
-				<version>2.5.1</version>
-			</dependency>
-			<dependency>
-				<groupId>io.grpc</groupId>
-				<artifactId>grpc-auth</artifactId>
-				<version>1.47.0</version>
-			</dependency>
-			<dependency>
-				<groupId>io.perfmark</groupId>
-				<artifactId>perfmark-api</artifactId>
-				<version>0.25.0</version>
-			</dependency>
-			<dependency>
-				<groupId>io.grpc</groupId>
-				<artifactId>grpc-core</artifactId>
-				<version>1.47.0</version>
-			</dependency>
-			<dependency>
-				<groupId>com.google.android</groupId>
-				<artifactId>annotations</artifactId>
-				<version>4.1.1.4</version>
-			</dependency>
-			<dependency>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>animal-sniffer-annotations</artifactId>
-				<version>1.21</version>
-			</dependency>
-			<dependency>
-				<groupId>io.grpc</groupId>
-				<artifactId>grpc-googleapis</artifactId>
-				<version>1.47.0</version>
-			</dependency>
-			<dependency>
-				<groupId>io.grpc</groupId>
-				<artifactId>grpc-xds</artifactId>
-				<version>1.47.0</version>
-			</dependency>
-			<dependency>
-				<groupId>io.grpc</groupId>
-				<artifactId>grpc-services</artifactId>
-				<version>1.47.0</version>
-			</dependency>
-			<dependency>
-				<groupId>com.google.re2j</groupId>
-				<artifactId>re2j</artifactId>
-				<version>1.5</version>
-			</dependency>
-			<dependency>
-				<groupId>org.bouncycastle</groupId>
-				<artifactId>bcpkix-jdk15on</artifactId>
-				<version>1.67</version>
-			</dependency>
-			<dependency>
-				<groupId>org.bouncycastle</groupId>
-				<artifactId>bcprov-jdk15on</artifactId>
-				<version>1.67</version>
-			</dependency>
-			<dependency>
-				<groupId>io.opencensus</groupId>
-				<artifactId>opencensus-proto</artifactId>
-				<version>0.2.0</version>
-			</dependency>
+		<dependency>
+			<groupId>io.grpc</groupId>
+			<artifactId>grpc-netty-shaded</artifactId>
+			<version>1.47.0</version>
+		</dependency>
+		<dependency>
+			<groupId>io.grpc</groupId>
+			<artifactId>grpc-alts</artifactId>
+			<version>1.47.0</version>
+		</dependency>
+		<dependency>
+			<groupId>io.grpc</groupId>
+			<artifactId>grpc-grpclb</artifactId>
+			<version>1.47.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.conscrypt</groupId>
+			<artifactId>conscrypt-openjdk-uber</artifactId>
+			<version>2.5.1</version>
+		</dependency>
+		<dependency>
+			<groupId>io.grpc</groupId>
+			<artifactId>grpc-auth</artifactId>
+			<version>1.47.0</version>
+		</dependency>
+		<dependency>
+			<groupId>io.perfmark</groupId>
+			<artifactId>perfmark-api</artifactId>
+			<version>0.25.0</version>
+		</dependency>
+		<dependency>
+			<groupId>io.grpc</groupId>
+			<artifactId>grpc-core</artifactId>
+			<version>1.47.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.android</groupId>
+			<artifactId>annotations</artifactId>
+			<version>4.1.1.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.mojo</groupId>
+			<artifactId>animal-sniffer-annotations</artifactId>
+			<version>1.21</version>
+		</dependency>
+		<dependency>
+			<groupId>io.grpc</groupId>
+			<artifactId>grpc-googleapis</artifactId>
+			<version>1.47.0</version>
+		</dependency>
+		<dependency>
+			<groupId>io.grpc</groupId>
+			<artifactId>grpc-xds</artifactId>
+			<version>1.47.0</version>
+		</dependency>
+		<dependency>
+			<groupId>io.grpc</groupId>
+			<artifactId>grpc-services</artifactId>
+			<version>1.47.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.re2j</groupId>
+			<artifactId>re2j</artifactId>
+			<version>1.5</version>
+		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcpkix-jdk15on</artifactId>
+			<version>1.67</version>
+		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk15on</artifactId>
+			<version>1.67</version>
+		</dependency>
+		<dependency>
+			<groupId>io.opencensus</groupId>
+			<artifactId>opencensus-proto</artifactId>
+			<version>0.2.0</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -148,7 +169,7 @@
 				<executions>
 					<execution>
 						<configuration>
-							<componentName>tGoogleAnalytics4Input</componentName>
+							<componentName>tGoogleAnalytics4Management</componentName>
 						</configuration>
 						<goals>
 							<goal>component</goal>

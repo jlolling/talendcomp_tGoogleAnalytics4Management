@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<COMPONENT> 
+  <HEADER PLATEFORM="ALL" SERIAL="" VERSION="8.0" STATUS="PROD" COMPATIBILITY="ALL" AUTHOR="Jan Lolling" RELEASE_DATE="20211028" HAS_CONDITIONAL_OUTPUTS="true" STARTABLE="true"> 
+    <SIGNATURE/> 
+  </HEADER>  
+  <FAMILIES> 
+    <FAMILY>Business/Google</FAMILY> 
+  </FAMILIES>  
+  <DOCUMENTATION> 
+    <URL/> 
+  </DOCUMENTATION>  
+  <CONNECTORS> 
+    <CONNECTOR CTYPE="ITERATE" MAX_INPUT="1" MAX_OUTPUT="0"/>  
+    <CONNECTOR CTYPE="SUBJOB_OK" MAX_INPUT="1" MAX_OUTPUT="1"/>  
+    <CONNECTOR CTYPE="SUBJOB_ERROR" MAX_INPUT="1" MAX_OUTPUT="1"/>  
+    <CONNECTOR CTYPE="COMPONENT_OK"/>  
+    <CONNECTOR CTYPE="COMPONENT_ERROR"/>  
+    <CONNECTOR CTYPE="RUN_IF"/>  
+    <CONNECTOR NAME="ACCOUNTS" CTYPE="FLOW" MAX_INPUT="0" MAX_OUTPUT="1" LINE_STYLE="1"/>  
+    <CONNECTOR NAME="WEBPROPERTIES" CTYPE="FLOW" MAX_INPUT="0" MAX_OUTPUT="1" LINE_STYLE="1"/>  
+    <CONNECTOR NAME="PROFILES" CTYPE="FLOW" MAX_INPUT="0" MAX_OUTPUT="1" LINE_STYLE="1"/>  
+    <CONNECTOR NAME="SEGMENTS" CTYPE="FLOW" MAX_INPUT="0" MAX_OUTPUT="1" LINE_STYLE="1"/>  
+    <CONNECTOR NAME="GOALS" CTYPE="FLOW" MAX_INPUT="0" MAX_OUTPUT="1" LINE_STYLE="1"/>  
+    <CONNECTOR NAME="GOAL_URL_DEST_STEPS" CTYPE="FLOW" MAX_INPUT="0" MAX_OUTPUT="1" LINE_STYLE="1"/>  
+    <CONNECTOR NAME="GOAL_EVENT_CONDITIONS" CTYPE="FLOW" MAX_INPUT="0" MAX_OUTPUT="1" LINE_STYLE="1"/>  
+    <CONNECTOR NAME="REPORT_COLUMNS" CTYPE="FLOW" MAX_INPUT="0" MAX_OUTPUT="1" LINE_STYLE="1"/>  
+    <CONNECTOR NAME="UNSAMPLED_REPORTS" CTYPE="FLOW" MAX_INPUT="0" MAX_OUTPUT="1" LINE_STYLE="1"/>  
+    <CONNECTOR NAME="ACCOUNT_USER_PERMISSIONS" CTYPE="FLOW" MAX_INPUT="0" MAX_OUTPUT="1" LINE_STYLE="1"/>  
+    <CONNECTOR NAME="WEBPROPERTY_USER_PERMISSIONS" CTYPE="FLOW" MAX_INPUT="0" MAX_OUTPUT="1" LINE_STYLE="1"/>  
+    <CONNECTOR NAME="PROFILE_USER_PERMISSIONS" CTYPE="FLOW" MAX_INPUT="0" MAX_OUTPUT="1" LINE_STYLE="1"/>  
+    <CONNECTOR NAME="CUSTOM_DATA_SOURCES" CTYPE="FLOW" MAX_INPUT="0" MAX_OUTPUT="1" LINE_STYLE="1"/>  
+    <CONNECTOR NAME="ADWORDS_LINKS" CTYPE="FLOW" MAX_INPUT="0" MAX_OUTPUT="1" LINE_STYLE="1"/> 
+  </CONNECTORS>  
+  <PARAMETERS> 
+    <PARAMETER FIELD="FILE" NAME="JSON_KEY_FILE" NUM_ROW="21" REQUIRED="true" GROUP="CLIENT"> 
+      <DEFAULT/> 
+    </PARAMETER>  
+    <PARAMETER FIELD="TEXT" NAME="PROPERTY_ID" NUM_ROW="35" REQUIRED="true" GROUP="QUERY"> 
+      <DEFAULT/> 
+    </PARAMETER>  
+    <PARAMETER NAME="SCHEMA_ACCOUNTS" FIELD="SCHEMA_TYPE" REQUIRED="true" NUM_ROW="101" CONTEXT="ACCOUNTS"> 
+      <TABLE READONLY="true"> 
+        <COLUMN NAME="ACCOUNT_ID" TYPE="id_Long" READONLY="true" CUSTOM="true" LENGTH="22" KEY="true" NULLABLE="false" COMMENT="Account ID"/>  
+        <COLUMN NAME="ACCOUNT_NAME" TYPE="id_String" READONLY="true" CUSTOM="true" LENGTH="512" NULLABLE="false" COMMENT=""/>  
+        <COLUMN NAME="ACCOUNT_CREATED" TYPE="id_Date" READONLY="true" CUSTOM="true" PATTERN="&quot;yyyy-MM-dd HH:mm:ss&quot;" LENGTH="10" NULLABLE="false"/>  
+        <COLUMN NAME="ACCOUNT_UPDATED" TYPE="id_Date" READONLY="true" CUSTOM="true" PATTERN="&quot;yyyy-MM-dd HH:mm:ss&quot;" LENGTH="10"/>  
+        <COLUMN NAME="ACCOUNT_SELFLINK" TYPE="id_String" READONLY="true" CUSTOM="true" LENGTH="1024" NULLABLE="true" COMMENT=""/> 
+      </TABLE> 
+    </PARAMETER>  
+    <PARAMETER NAME="SCHEMA_PROPERTIES" FIELD="SCHEMA_TYPE" REQUIRED="true" NUM_ROW="102" CONTEXT="WEBPROPERTIES"> 
+      <TABLE READONLY="true"> 
+        <COLUMN NAME="PROPERTY_ID" TYPE="id_String" READONLY="true" CUSTOM="true" LENGTH="32" KEY="true" NULLABLE="false"/>  
+        <COLUMN NAME="ACCOUNT_ID" TYPE="id_Long" READONLY="true" CUSTOM="true" LENGTH="22" NULLABLE="false"/>  
+        <COLUMN NAME="PROPERTY_INTERNAL_ID" TYPE="id_Long" READONLY="true" CUSTOM="true" LENGTH="22" NULLABLE="false"/>  
+        <COLUMN NAME="PROPERTY_NAME" TYPE="id_String" READONLY="true" CUSTOM="true" LENGTH="512" NULLABLE="false"/>  
+        <COLUMN NAME="PROPERTY_SITE_URL" TYPE="id_String" READONLY="true" CUSTOM="true" LENGTH="1024" NULLABLE="true"/>  
+        <COLUMN NAME="PROPERTY_CREATED" TYPE="id_Date" READONLY="true" CUSTOM="true" PATTERN="&quot;yyyy-MM-dd HH:mm:ss&quot;" LENGTH="10" NULLABLE="false"/>  
+        <COLUMN NAME="PROPERTY_UPDATED" TYPE="id_Date" READONLY="true" CUSTOM="true" PATTERN="&quot;yyyy-MM-dd HH:mm:ss&quot;" LENGTH="10"/>  
+        <COLUMN NAME="PROPERTY_SELFLINK" TYPE="id_String" READONLY="true" CUSTOM="true" LENGTH="1024" NULLABLE="true" COMMENT="The link to manage this web property"/>  
+        <COLUMN NAME="PROPERTY_LEVEL" TYPE="id_String" READONLY="true" CUSTOM="true" LENGTH="32" NULLABLE="true" COMMENT="Level for this property. Possible values are STANDARD or PREMIUM"/>  
+        <COLUMN NAME="PROPERTY_INDUSTRY_VERTICAL" TYPE="id_String" READONLY="true" CUSTOM="true" LENGTH="512" NULLABLE="true" COMMENT="The industry vertical/category selected for this property"/> 
+      </TABLE> 
+    </PARAMETER>  
+     <PARAMETER NAME="SCHEMA_COLUMNS" FIELD="SCHEMA_TYPE" REQUIRED="true" NUM_ROW="108" CONTEXT="REPORT_COLUMNS"> 
+      <TABLE READONLY="true"> 
+        <COLUMN NAME="COL_TYPE" TYPE="id_String" READONLY="true" CUSTOM="true" LENGTH="16" KEY="false" NULLABLE="false" COMMENT="METRIC or DIMENSION"/>  
+        <COLUMN NAME="COL_API_NAME" TYPE="id_String" READONLY="true" CUSTOM="true" LENGTH="64" KEY="true" NULLABLE="false" COMMENT="Name to be used in the API requests like ga:xxxx"/>  
+        <COLUMN NAME="COL_UI_NAME" TYPE="id_String" READONLY="true" CUSTOM="true" LENGTH="128" KEY="false" NULLABLE="false" COMMENT="Human readable name used in the web application of Analytics"/>  
+        <COLUMN NAME="COL_DESCRIPTION" TYPE="id_String" READONLY="true" COMMENT="Description of the column" CUSTOM="true" LENGTH="1024" NULLABLE="true"/>  
+        <COLUMN NAME="COL_DATA_TYPE" TYPE="id_String" READONLY="true" COMMENT="The type of data this column represents: STRING, INTEGER, PERCENT, TIME, CURRENCY, FLOAT" CUSTOM="true" LENGTH="32" NULLABLE="false"/>  
+        <COLUMN NAME="COL_GROUP" TYPE="id_String" COMMENT="The group where this dimension or metric can be found" READONLY="true" CUSTOM="true" LENGTH="64" NULLABLE="false"/>  
+        <COLUMN NAME="COL_STATUS" TYPE="id_String" READONLY="true" CUSTOM="true" LENGTH="32" NULLABLE="false" COMMENT="PUBLIC=usable, DEPRECATED=avoid using it, see replaced_by"/>  
+        <COLUMN NAME="COL_REPLACED_BY" TYPE="id_String" READONLY="true" CUSTOM="true" LENGTH="64" NULLABLE="true" COMMENT="In case of status is deprecated, find the replacement here"/>  
+        <COLUMN NAME="COL_CALCULATION" TYPE="id_String" READONLY="true" CUSTOM="true" LENGTH="512" NULLABLE="true" COMMENT="For metrics which are the result of a calculation"/>  
+        <COLUMN NAME="COL_ALLOWED_IN_SEGMENTS" TYPE="id_Boolean" READONLY="true" CUSTOM="true" LENGTH="1" NULLABLE="true" COMMENT="Indicates whether the column can be used in the segment query parameter"/>  
+        <COLUMN NAME="COL_ADDED_IN_API_VERSION" TYPE="id_String" READONLY="true" CUSTOM="true" LENGTH="16" NULLABLE="true" COMMENT="Metric or dimension exists since this API release"/> 
+      </TABLE> 
+    </PARAMETER>  
+    <PARAMETER NAME="SCHEMA_ACCOUNT_USER_PERMISSIONS" FIELD="SCHEMA_TYPE" REQUIRED="true" NUM_ROW="120" CONTEXT="ACCOUNT_USER_PERMISSIONS"> 
+      <TABLE READONLY="true"> 
+        <COLUMN NAME="ACCOUNT_ID" TYPE="id_Long" KEY="true" READONLY="true" COMMENT="Account ID" CUSTOM="true" LENGTH="22" NULLABLE="false"/>  
+        <COLUMN NAME="EMAIL" TYPE="id_String" KEY="true" COMMENT="Email of the User having the permissions" READONLY="true" CUSTOM="true" LENGTH="128" NULLABLE="false"/>  
+        <COLUMN NAME="PERMISSIONS_LOCAL" TYPE="id_String" READONLY="true" COMMENT="Comma separated list of the explicit set permissions for this account" CUSTOM="true" LENGTH="64" NULLABLE="true"/>  
+        <COLUMN NAME="PERMISSIONS_EFFECTIVE" TYPE="id_String" READONLY="true" COMMENT="Comma separated list of the effective permissions for this account" CUSTOM="true" LENGTH="64" NULLABLE="true"/> 
+      </TABLE> 
+    </PARAMETER>  
+    <PARAMETER NAME="SCHEMA_PROPERTY_USER_PERMISSIONS" FIELD="SCHEMA_TYPE" REQUIRED="true" NUM_ROW="121" CONTEXT="WEBPROPERTY_USER_PERMISSIONS"> 
+      <TABLE READONLY="true"> 
+        <COLUMN NAME="ACCOUNT_ID" TYPE="id_Long" READONLY="true" COMMENT="Account ID" CUSTOM="true" LENGTH="22" NULLABLE="false"/>  
+        <COLUMN NAME="WEBPROPERTY_ID" TYPE="id_String" KEY="true" READONLY="true" COMMENT="Web Property ID" CUSTOM="true" LENGTH="32" NULLABLE="false"/>  
+        <COLUMN NAME="EMAIL" TYPE="id_String" KEY="true" COMMENT="Email of the User having the permissions" READONLY="true" CUSTOM="true" LENGTH="128" NULLABLE="false"/>  
+        <COLUMN NAME="PERMISSIONS_LOCAL" TYPE="id_String" READONLY="true" COMMENT="Comma separated list of the explicit set permissions for this Web Property" CUSTOM="true" LENGTH="64" NULLABLE="true"/>  
+        <COLUMN NAME="PERMISSIONS_EFFECTIVE" TYPE="id_String" READONLY="true" COMMENT="Comma separated list of the effective permissions for this Web Property" CUSTOM="true" LENGTH="64" NULLABLE="true"/> 
+      </TABLE> 
+    </PARAMETER>  
+    <PARAMETER FIELD="CHECK" NAME="IGNORE_PERMISSION_ERRORS" NUM_ROW="130"> 
+      <DEFAULT>false</DEFAULT> 
+    </PARAMETER>  
+  </PARAMETERS>  
+  <ADVANCED_PARAMETERS> 
+    <PARAMETER FIELD="TEXT" NAME="MAX_ATTEMPTS" NUM_ROW="5"> 
+      <DEFAULT>5</DEFAULT> 
+    </PARAMETER>  
+    <PARAMETER FIELD="TEXT" NAME="TIMEOUT_IN_SEC" NUM_ROW="10"> 
+      <DEFAULT>240</DEFAULT> 
+    </PARAMETER>  
+    <PARAMETER FIELD="TEXT" NAME="TIME_OFFSET" NUM_ROW="15"> 
+      <DEFAULT>10000</DEFAULT> 
+    </PARAMETER>  
+    <PARAMETER FIELD="CHECK" NAME="KEEP_CLIENT" NUM_ROW="40"> 
+      <DEFAULT>true</DEFAULT> 
+    </PARAMETER>  
+    <PARAMETER FIELD="TEXT" NAME="KEEP_CLIENT_KEY" NUM_ROW="40" SHOW_IF="KEEP_CLIENT == 'true'"/>  
+    <PARAMETER FIELD="TEXT" NAME="WAIT_TIME_BETWEEN_REQUESTS" NUM_ROW="45"> 
+      <DEFAULT>800</DEFAULT> 
+    </PARAMETER>  
+    <PARAMETER NAME="RELEASE_LABEL_20211028" FIELD="LABEL" COLOR="0;0;0" NUM_ROW="900">
+      <DEFAULT>Release: 8.0 build at: 20211028</DEFAULT>
+    </PARAMETER>
+  </ADVANCED_PARAMETERS>  
+  <CODEGENERATION> 
+    <IMPORTS> 
+      <IMPORT NAME="jlo-talendcomp-google-analytics-metadata" MODULE="jlo-talendcomp-google-analytics-metadata-8.0.jar" MVN="mvn:org.talend.libraries/jlo-talendcomp-google-analytics-metadata-8.0/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="google-api-services-analytics-v3-rev20190807" MODULE="google-api-services-analytics-v3-rev20190807-1.30.10.jar" MVN="mvn:org.talend.libraries/google-api-services-analytics-v3-rev20190807-1.30.10/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="google-api-client" MODULE="google-api-client-1.30.10.jar" MVN="mvn:org.talend.libraries/google-api-client-1.30.10/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="google-oauth-client" MODULE="google-oauth-client-1.31.0.jar" MVN="mvn:org.talend.libraries/google-oauth-client-1.31.0/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="guava-29.0" MODULE="guava-29.0-android.jar" MVN="mvn:org.talend.libraries/guava-29.0-android/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="failureaccess" MODULE="failureaccess-1.0.1.jar" MVN="mvn:org.talend.libraries/failureaccess-1.0.1/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="listenablefuture-9999.0-empty-to-avoid-conflict-with" MODULE="listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar" MVN="mvn:org.talend.libraries/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="checker-compat-qual" MODULE="checker-compat-qual-2.5.5.jar" MVN="mvn:org.talend.libraries/checker-compat-qual-2.5.5/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="error_prone_annotations" MODULE="error_prone_annotations-2.3.4.jar" MVN="mvn:org.talend.libraries/error_prone_annotations-2.3.4/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="google-api-services-analyticsreporting-v4-rev20200210" MODULE="google-api-services-analyticsreporting-v4-rev20200210-1.30.10.jar" MVN="mvn:org.talend.libraries/google-api-services-analyticsreporting-v4-rev20200210-1.30.10/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="jackson-databind" MODULE="jackson-databind-2.10.0.jar" MVN="mvn:org.talend.libraries/jackson-databind-2.10.0/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="jackson-annotations" MODULE="jackson-annotations-2.10.0.jar" MVN="mvn:org.talend.libraries/jackson-annotations-2.10.0/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="jackson-core" MODULE="jackson-core-2.10.0.jar" MVN="mvn:org.talend.libraries/jackson-core-2.10.0/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="httpclient" MODULE="httpclient-4.5.10.jar" MVN="mvn:org.talend.libraries/httpclient-4.5.10/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="httpcore" MODULE="httpcore-4.4.12.jar" MVN="mvn:org.talend.libraries/httpcore-4.4.12/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="commons-logging" MODULE="commons-logging-1.2.jar" MVN="mvn:org.talend.libraries/commons-logging-1.2/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="commons-codec" MODULE="commons-codec-1.11.jar" MVN="mvn:org.talend.libraries/commons-codec-1.11/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="google-http-client-jackson2" MODULE="google-http-client-jackson2-1.36.0.jar" MVN="mvn:org.talend.libraries/google-http-client-jackson2-1.36.0/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="google-http-client" MODULE="google-http-client-1.36.0.jar" MVN="mvn:org.talend.libraries/google-http-client-1.36.0/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="jsr305" MODULE="jsr305-3.0.2.jar" MVN="mvn:org.talend.libraries/jsr305-3.0.2/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="j2objc-annotations" MODULE="j2objc-annotations-1.3.jar" MVN="mvn:org.talend.libraries/j2objc-annotations-1.3/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="opencensus-api" MODULE="opencensus-api-0.24.0.jar" MVN="mvn:org.talend.libraries/opencensus-api-0.24.0/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="grpc-context" MODULE="grpc-context-1.22.1.jar" MVN="mvn:org.talend.libraries/grpc-context-1.22.1/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="opencensus-contrib-http-util" MODULE="opencensus-contrib-http-util-0.24.0.jar" MVN="mvn:org.talend.libraries/opencensus-contrib-http-util-0.24.0/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="google-oauth-client-jetty" MODULE="google-oauth-client-jetty-1.31.0.jar" MVN="mvn:org.talend.libraries/google-oauth-client-jetty-1.31.0/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="google-oauth-client-java6" MODULE="google-oauth-client-java6-1.31.0.jar" MVN="mvn:org.talend.libraries/google-oauth-client-java6-1.31.0/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="log4j-api" MODULE="log4j-api-2.14.1.jar" MVN="mvn:org.talend.libraries/log4j-api-2.14.1/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="log4j-core" MODULE="log4j-core-2.14.1.jar" MVN="mvn:org.talend.libraries/log4j-core-2.14.1/6.0.0-SNAPSHOT" REQUIRED="true"/>
+    </IMPORTS> 
+  </CODEGENERATION>  
+  <RETURNS> 
+    <RETURN AVAILABILITY="AFTER" NAME="ACCOUNTS_NB_LINE" TYPE="id_Integer"/>  
+    <RETURN AVAILABILITY="AFTER" NAME="PROPERTIES_NB_LINE" TYPE="id_Integer"/>  
+    <RETURN AVAILABILITY="AFTER" NAME="REPORT_COLUMNS_NB_LINE" TYPE="id_Integer"/>  
+    <RETURN AVAILABILITY="AFTER" NAME="ACCOUNT_USER_PERMISSIONS_NB_LINE" TYPE="id_Integer"/>  
+    <RETURN AVAILABILITY="AFTER" NAME="PROPERTY_USER_PERMISSIONS_NB_LINE" TYPE="id_Integer"/>  
+    <RETURN AVAILABILITY="AFTER" NAME="PROFILE_USER_PERMISSIONS_NB_LINE" TYPE="id_Integer"/>  
+  </RETURNS>
+</COMPONENT>
