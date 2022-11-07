@@ -130,12 +130,17 @@ public class GoogleAnalyticsBase {
 		}
 	}
 
+<<<<<<< HEAD:src/main/java/de/jlo/talendcomp/google/analytics/ga4/manage/GoogleAnalyticsBase.java
 	public void close() {
 		if (analyticsDataClient != null) {
 			try {
 				analyticsDataClient.shutdownNow();
 			} catch (Throwable t) {}
 		}
+=======
+	public int getTimeoutInSeconds() {
+		return timeoutInSeconds;
+>>>>>>> master:src/main/java/de/jlo/talendcomp/google/analytics/ga4/GoogleAnalyticsBase.java
 	}
 
 }
