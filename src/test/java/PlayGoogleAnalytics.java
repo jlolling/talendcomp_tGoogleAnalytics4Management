@@ -22,11 +22,11 @@ public class PlayGoogleAnalytics {
 	public static void testGAData() throws Exception {
 		GoogleAnalyticsManagement gi = new GoogleAnalyticsManagement();
 		gi.setJsonCredentialFile("/var/testdata/ga/config/ga4_test_talendcomp-jlo-6a6adfd8a6b6.json");
-		gi.setTimeoutInSeconds(240);
 		System.out.println("initialize clients....");
 		gi.initializeAdminClient();
 		System.out.println("collect data...");
 		gi.collectAll();
+		gi.close();
 	}
 		
 }
