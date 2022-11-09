@@ -45,7 +45,13 @@ import com.google.analytics.data.v1beta.MetricMetadata;
 import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.api.gax.rpc.ApiException;
 
+import de.jlo.talendcomp.google.analytics.ga4.manage.AccountWrapper;
+import de.jlo.talendcomp.google.analytics.ga4.manage.CustomDimensionWrapper;
+import de.jlo.talendcomp.google.analytics.ga4.manage.CustomMetricWrapper;
+import de.jlo.talendcomp.google.analytics.ga4.manage.DimensionWrapper;
 import de.jlo.talendcomp.google.analytics.ga4.manage.GoogleAnalyticsBase;
+import de.jlo.talendcomp.google.analytics.ga4.manage.MetricWrapper;
+import de.jlo.talendcomp.google.analytics.ga4.manage.PropertyWrapper;
 
 
 public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
@@ -56,13 +62,13 @@ public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
 	private AnalyticsAdminServiceClient analyticsAdmin = null;
 	private List<DimensionMetadata> listDimensionsMetadata;
 	private List<MetricMetadata> listMetricMetadata;
-	private List<Account> listAccounts;
-	private List<Property> listProperties;
-	private List<CustomDimension> listCustomDimensions;
-	private List<CustomMetric> listCustomMetrics;
+	private List<AccountWrapper> listAccounts;
+	private List<PropertyWrapper> listProperties;
+	private List<CustomDimensionWrapper> listCustomDimensions;
+	private List<CustomMetricWrapper> listCustomMetrics;
 	private int currentIndex = 0;
 	private int maxRows = 0;
-	private Property currentPropertyForCollectionCustomDimMetrics = null;
+	private long waitMillisBetweenRequests = 200;
 	
 	public static void putIntoCache(String key, GoogleAnalyticsManagement gai) {
 		clientCache.put(key, gai);
@@ -91,12 +97,13 @@ public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
 		ListAccountsPagedResponse response = analyticsAdmin.listAccounts(builder.build());
 		for (ListAccountsPage page : response.iteratePages()) {
 			for (Account item : page.iterateAll()) {
-				listAccounts.add(item);
+				listAccounts.add(new AccountWrapper(item));
 				info("* account: " + item.getName() + " (" + item.getDisplayName() + ")");
 			}
 		}
 		info(listAccounts.size() + " accounts received");
 		setMaxRows(listAccounts.size());
+		Thread.sleep(waitMillisBetweenRequests);
 	}
 	
 	public void collectProperties() throws Exception {
@@ -108,20 +115,21 @@ public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
 			throw new IllegalStateException("No accounts collected before. We need accounts to filter the properties!");
 		}
 		listProperties = new ArrayList<>();
-		for (Account account : listAccounts) {
+		for (AccountWrapper account : listAccounts) {
 			info("Collect properties for account: " + account.getName() + " (" + account.getDisplayName() + ")");
 			ListPropertiesRequest.Builder builder = ListPropertiesRequest.newBuilder();
 			builder.setFilter("parent:" + account.getName());
 			ListPropertiesPagedResponse response = analyticsAdmin.listProperties(builder.build());
 			for (ListPropertiesPage page : response.iteratePages()) {
 				for (Property item : page.iterateAll()) {
-					listProperties.add(item);
+					listProperties.add(new PropertyWrapper(item));
 					info("* property: " + item.getName() + " (" + item.getDisplayName() + "), parent: " + item.getParent());
 				}
 			}
 		}
 		info(listProperties.size() + " properties received");
 		setMaxRows(listProperties.size());
+		Thread.sleep(waitMillisBetweenRequests);
 	}
 
 	public void collectCustomDimensions() throws Exception {
@@ -133,18 +141,20 @@ public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
 			throw new IllegalStateException("No properties collected before. We need properties to filter the custom dimensions");
 		}
 		listCustomDimensions = new ArrayList<>();
-		for (Property property : listProperties) {
+		for (PropertyWrapper property : listProperties) {
 			info("Collect custom dimensions for property: " + property.getName() + " (" + property.getDisplayName() + ")");
-			currentPropertyForCollectionCustomDimMetrics = property;
 			ListCustomDimensionsRequest.Builder builder = ListCustomDimensionsRequest.newBuilder();
 			builder.setParent(property.getName());
 			ListCustomDimensionsPagedResponse response = analyticsAdmin.listCustomDimensions(builder.build());
 			for (ListCustomDimensionsPage page : response.iteratePages()) {
 				for (CustomDimension item : page.iterateAll()) {
-					listCustomDimensions.add(item);
+					CustomDimensionWrapper w = new CustomDimensionWrapper(item);
+					w.setPropertyId(property.getId());
+					listCustomDimensions.add(w);
 					info("* custom dimension: " + item.getName() + " (" + item.getDisplayName() + ")");
 				}
 			}
+			Thread.sleep(waitMillisBetweenRequests);
 		}
 		info(listCustomDimensions.size() + " custom dimensions received");
 		setMaxRows(listCustomDimensions.size());
@@ -159,18 +169,20 @@ public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
 			throw new IllegalStateException("No properties collected before. We need properties to filter the custom metrics");
 		}
 		listCustomMetrics = new ArrayList<>();
-		for (Property property : listProperties) {
+		for (PropertyWrapper property : listProperties) {
 			info("Collect custom metrics for property: " + property.getName() + " (" + property.getDisplayName() + ")");
-			currentPropertyForCollectionCustomDimMetrics = property;
 			ListCustomMetricsRequest.Builder builder = ListCustomMetricsRequest.newBuilder();
 			builder.setParent(property.getName());
 			ListCustomMetricsPagedResponse response = analyticsAdmin.listCustomMetrics(builder.build());
 			for (ListCustomMetricsPage page : response.iteratePages()) {
 				for (CustomMetric item : page.iterateAll()) {
-					listCustomMetrics.add(item);
+					CustomMetricWrapper w = new CustomMetricWrapper(item);
+					w.setPropertyId(property.getId());
+					listCustomMetrics.add(w);
 					info("* custom metric: " + item.getName() + " (" + item.getDisplayName() + ")");
 				}
 			}
+			Thread.sleep(waitMillisBetweenRequests);
 		}
 		info(listCustomMetrics.size() + " custom metrics received");
 		setMaxRows(listCustomMetrics.size());
@@ -219,34 +231,7 @@ public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
 		info(expectedCountDimensions + " dimensions and " + expectedCountMetrics + " metrics received");
 		listDimensionsMetadata = responseMetadata.getDimensionsList();
 		listMetricMetadata = responseMetadata.getMetricsList();
-	}
-	
-	public void collectAll() throws Exception {
-		try {
-			collectDimensionAndMetrics();
-		} catch (Exception e) {
-			throw new Exception("Collect dimensions and metrics failed: " + e.getMessage(), e);
-		}
-		try {
-			collectAccounts();
-		} catch (Exception e) {
-			throw new Exception("Collect accounts failed: " + e.getMessage(), e);
-		}
-		try {
-			collectProperties();
-		} catch (Exception e) {
-			throw new Exception("Collect properties failed: " + e.getMessage(), e);
-		}
-		try {
-			collectCustomDimensions();
-		} catch (Exception e) {
-			throw new Exception("Collect custom dimensions failed: " + e.getMessage(), e);
-		}
-		try {
-			collectCustomMetrics();
-		} catch (Exception e) {
-			throw new Exception("Collect custom metrics failed: " + e.getMessage(), e);
-		}
+		Thread.sleep(waitMillisBetweenRequests);
 	}
 	
 	private void setMaxRows(int rows) {
@@ -259,7 +244,7 @@ public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
 		return ++currentIndex <= maxRows;
 	}
 	
-	public boolean hasCurrentDimensions() {
+	public boolean hasCurrentCommonDimension() {
 		if (listDimensionsMetadata != null) {
 			return currentIndex <= listDimensionsMetadata.size();
 		} else {
@@ -267,7 +252,7 @@ public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
 		}
 	}
 
-	public boolean hasCurrentMetrics() {
+	public boolean hasCurrentCommonMetric() {
 		if (listMetricMetadata != null) {
 			return currentIndex <= listMetricMetadata.size();
 		} else {
@@ -275,7 +260,7 @@ public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
 		}
 	}
 
-	public boolean hasCurrentAccounts() {
+	public boolean hasCurrentAccount() {
 		if (listAccounts != null) {
 			return currentIndex <= listAccounts.size();
 		} else {
@@ -283,7 +268,7 @@ public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
 		}
 	}
 
-	public boolean hasCurrentProperties() {
+	public boolean hasCurrentProperty() {
 		if (listProperties != null) {
 			return currentIndex <= listProperties.size();
 		} else {
@@ -291,7 +276,7 @@ public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
 		}
 	}
 
-	public boolean hasCurrentCustomDimensions() {
+	public boolean hasCurrentCustomDimension() {
 		if (listCustomDimensions != null) {
 			return currentIndex <= listCustomDimensions.size();
 		} else {
@@ -299,7 +284,7 @@ public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
 		}
 	}
 
-	public boolean hasCurrentCustomMetrics() {
+	public boolean hasCurrentCustomMetric() {
 		if (listCustomMetrics != null) {
 			return currentIndex <= listCustomMetrics.size();
 		} else {
@@ -307,29 +292,29 @@ public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
 		}
 	}
 
-	public DimensionMetadata getCurrentDimension() {
+	public DimensionWrapper getCurrentCommonDimension() {
 		if (currentIndex == 0) {
-			throw new IllegalStateException("Call collectColumns() before!");
+			throw new IllegalStateException("Call collectDimensionAndMetrics() before!");
 		}
 		if (currentIndex <= listDimensionsMetadata.size()) {
-			return listDimensionsMetadata.get(currentIndex - 1);
+			return new DimensionWrapper(listDimensionsMetadata.get(currentIndex - 1));
 		} else {
 			return null;
 		}
 	}
 	
-	public MetricMetadata getCurrentMetric() {
+	public MetricWrapper getCurrentCommonMetric() {
 		if (currentIndex == 0) {
-			throw new IllegalStateException("Call collectColuns() before!");
+			throw new IllegalStateException("Call collectDimensionAndMetrics() before!");
 		}
 		if (currentIndex <= listMetricMetadata.size()) {
-			return listMetricMetadata.get(currentIndex - 1);
+			return new MetricWrapper(listMetricMetadata.get(currentIndex - 1));
 		} else {
 			return null;
 		}
 	}
 	
-	public Account getCurrentAccount() {
+	public AccountWrapper getCurrentAccount() {
 		if (currentIndex == 0) {
 			throw new IllegalStateException("Call collectAccounts() before!");
 		}
@@ -340,7 +325,7 @@ public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
 		}
 	}
 
-	public Property getCurrentProperty() {
+	public PropertyWrapper getCurrentProperty() {
 		if (currentIndex == 0) {
 			throw new IllegalStateException("Call collectProperties() before!");
 		}
@@ -351,7 +336,7 @@ public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
 		}
 	}
 
-	public CustomDimension getCurrentCustomDimension() {
+	public CustomDimensionWrapper getCurrentCustomDimension() {
 		if (currentIndex == 0) {
 			throw new IllegalStateException("Call collectCustomDimensions() before!");
 		}
@@ -362,7 +347,7 @@ public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
 		}
 	}
 
-	public CustomMetric getCurrentCustomMetric() {
+	public CustomMetricWrapper getCurrentCustomMetric() {
 		if (currentIndex == 0) {
 			throw new IllegalStateException("Call collectCustomMetrics() before!");
 		}
@@ -373,18 +358,24 @@ public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
 		}
 	}
 
-	public Property getCurrentPropertyForCollectionCustomDimMetrics() {
-		return currentPropertyForCollectionCustomDimMetrics;
-	}
-	
 	@Override
 	public void close() {
 		if (analyticsAdmin != null) {
 			try {
-				analyticsAdmin.shutdownNow();
+				analyticsAdmin.shutdown();
 			} catch (Throwable t) {}
 		}
 		super.close();
+	}
+
+	public long getWaitMillisBetweenRequests() {
+		return waitMillisBetweenRequests;
+	}
+
+	public void setWaitMillisBetweenRequests(Long waitMillisBetweenRequests) {
+		if (waitMillisBetweenRequests != null && waitMillisBetweenRequests.longValue() > 0l) {
+			this.waitMillisBetweenRequests = waitMillisBetweenRequests.longValue();
+		}
 	}
 
 }

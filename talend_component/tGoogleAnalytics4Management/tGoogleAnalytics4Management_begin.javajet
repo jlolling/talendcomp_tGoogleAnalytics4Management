@@ -1,12 +1,10 @@
 <%@ jet 
 	imports="
 		org.talend.core.model.process.INode 
-		org.talend.core.model.process.ElementParameterParser 
-		org.talend.core.model.metadata.IMetadataTable 
-		org.talend.core.model.metadata.IMetadataColumn 
+		org.talend.core.model.process.ElementParameterParser  
 		org.talend.core.model.process.IConnection
+		org.talend.core.model.process.IConnectionCategory
 		org.talend.designer.codegen.config.CodeGeneratorArgument
-		org.talend.core.model.metadata.types.JavaTypesManager
 		java.util.List
 	" 
 %>
@@ -15,8 +13,196 @@
 	INode node = (INode) codeGenArgument.getArgument();
 	String cid = node.getUniqueName();
 	String keyFile = ElementParameterParser.getValue(node, "__JSON_KEY_FILE__");
-	String timeout = ElementParameterParser.getValue(node, "__TIMEOUT_IN_SEC__");
+	String waitTime = ElementParameterParser.getValue(node, "__TIMEOUT_IN_SEC__");
 	String maxAttempts = ElementParameterParser.getValue(node, "__MAX_ATTEMPTS__");
+    List<? extends IConnection> connsAccounts = node.getOutgoingConnections("ACCOUNTS");
+    List<? extends IConnection> connsProperties = node.getOutgoingConnections("PROPERTIES");
+    List<? extends IConnection> connsCommonDimensions = node.getOutgoingConnections("COMMON_DIMENSIONS");
+    List<? extends IConnection> connsCommonMetrics = node.getOutgoingConnections("COMMON_METRICS");
+    List<? extends IConnection> connsCustomDimensions = node.getOutgoingConnections("CUSTOM_DIMENSIONS");
+    List<? extends IConnection> connsCustomMetrics = node.getOutgoingConnections("CUSTOM_METRICS");
+    String connAccountsName = null;
+    String connPropertiesName = null;
+    String connCommonDimensionsName = null;
+    String connCommonMetricsName = null;
+    String connCustomDimensionsName = null;
+    String connCustomMetricsName = null;
+    if (connsAccounts != null && connsAccounts.size() > 0) {
+    	IConnection connTemp = connsAccounts.get(0);
+    	if (connTemp.getLineStyle().hasConnectionCategory(IConnectionCategory.DATA)) {
+    		connAccountsName = connTemp.getName();
+    	}
+    }
+    if (connsProperties != null && connsProperties.size() > 0) {
+    	IConnection connTemp = connsProperties.get(0);
+    	if (connTemp.getLineStyle().hasConnectionCategory(IConnectionCategory.DATA)) {
+    		connPropertiesName = connTemp.getName();
+    	}
+    }
+    if (connsCommonDimensions != null && connsCommonDimensions.size() > 0) {
+    	IConnection connTemp = connsCommonDimensions.get(0);
+    	if (connTemp.getLineStyle().hasConnectionCategory(IConnectionCategory.DATA)) {
+    		connCommonDimensionsName = connTemp.getName();
+    	}
+    }
+    if (connsCommonMetrics != null && connsCommonMetrics.size() > 0) {
+    	IConnection connTemp = connsCommonMetrics.get(0);
+    	if (connTemp.getLineStyle().hasConnectionCategory(IConnectionCategory.DATA)) {
+    		connCommonMetricsName = connTemp.getName();
+    	}
+    }
+    if (connsCustomDimensions != null && connsCustomDimensions.size() > 0) {
+    	IConnection connTemp = connsCustomDimensions.get(0);
+    	if (connTemp.getLineStyle().hasConnectionCategory(IConnectionCategory.DATA)) {
+    		connCustomDimensionsName = connTemp.getName();
+    	}
+    }
+    if (connsCustomMetrics != null && connsCustomMetrics.size() > 0) {
+    	IConnection connTemp = connsCustomMetrics.get(0);
+    	if (connTemp.getLineStyle().hasConnectionCategory(IConnectionCategory.DATA)) {
+    		connCustomMetricsName = connTemp.getName();
+    	}
+    }
 %>
-	de.jlo.talendcomp.google.analytics.ga4.manage.v1 <%=cid%> = new de.jlo.talendcomp.google.analytics.ga4.manage.v1.GoogleAnalyticsManagement();
+	de.jlo.talendcomp.google.analytics.ga4.manage.v1.GoogleAnalyticsManagement <%=cid%> = new de.jlo.talendcomp.google.analytics.ga4.manage.v1.GoogleAnalyticsManagement();
+	<%=cid%>.setJsonCredentialFile(<%=keyFile%>);
+<%  if (waitTime != null && waitTime.trim().isEmpty() == false) { %>
+	<%=cid%>.setWaitMillisBetweenRequests(<%=waitTime%>);
+<%  } %>
+	try {
+	    // initialize client with private key
+		<%=cid%>.initializeAdminClient();
+	} catch (Exception e) {
+		globalMap.put("<%=cid%>_ERROR_MESSAGE", e.getMessage());
+		throw e;
+    }
+<%	if (connCommonDimensionsName != null || connCommonMetricsName != null) { %>
+	try {
+		<%=cid%>.collectDimensionAndMetrics();
+	} catch (Exception e) {
+		globalMap.put("<%=cid%>_ERROR_MESSAGE", e.getMessage());
+		throw e;
+    }	
+<%	} %>
+<%	if (connAccountsName != null || connPropertiesName != null || connCustomDimensionsName != null || connCustomMetricsName != null) { %>
+	try {
+		<%=cid%>.collectAccounts();
+		<%=cid%>.collectProperties();
+	} catch (Exception e) {
+		globalMap.put("<%=cid%>_ERROR_MESSAGE", e.getMessage());
+		throw e;
+    }	
+<%	} %>
+<%	if (connCustomDimensionsName != null) { %>
+	try {
+		<%=cid%>.collectCustomDimensions();
+	} catch (Exception e) {
+		globalMap.put("<%=cid%>_ERROR_MESSAGE", e.getMessage());
+		throw e;
+    }	
+<%	} %>
+<%	if (connCustomMetricsName != null) { %>
+	try {
+		<%=cid%>.collectCustomMetrics();
+	} catch (Exception e) {
+		globalMap.put("<%=cid%>_ERROR_MESSAGE", e.getMessage());
+		throw e;
+    }	
+<%	} %>
+    int countAccounts_<%=cid%> = 0;
+    int countProperties_<%=cid%> = 0;
+    int countCommonDimensions_<%=cid%> = 0;
+    int countCommonMetrics_<%=cid%> = 0;
+    int countCustomDimensions_<%=cid%> = 0;
+    int countCustomMetrics_<%=cid%> = 0;
+    while (<%=cid%>.next()) {
+		// loop through all elements
+<%  if (connAccountsName != null) { %>
+		if (<%=cid%>.hasCurrentAccount()) {
+		    <%=connAccountsName%> = new <%=connAccountsName%>Struct();
+			<%=connAccountsName%>.ACCOUNT_ID = <%=cid%>.getCurrentAccount().getId();
+			<%=connAccountsName%>.ACCOUNT_NAME = <%=cid%>.getCurrentAccount().getName();
+			<%=connAccountsName%>.ACCOUNT_DISPLAY_NAME = <%=cid%>.getCurrentAccount().getDisplayName();
+			<%=connAccountsName%>.ACCOUNT_CREATED = <%=cid%>.getCurrentAccount().getCreated();
+			<%=connAccountsName%>.ACCOUNT_UPDATED = <%=cid%>.getCurrentAccount().getUpdated();
+			<%=connAccountsName%>.ACCOUNT_REGION_CODE = <%=cid%>.getCurrentAccount().getRegionCode();
+			<%=connAccountsName%>.ACCOUNT_IS_DELETED = <%=cid%>.getCurrentAccount().isDeleted();
+			countAccounts_<%=cid%>++;
+		} else {
+			<%=connAccountsName%> = null;
+		}
+<%  } %>
+<%  if (connPropertiesName != null) { %>
+		if (<%=cid%>.hasCurrentProperty()) {
+		    <%=connPropertiesName%> = new <%=connPropertiesName%>Struct();
+			<%=connPropertiesName%>.PROPERTY_ID = <%=cid%>.getCurrentProperty().getId();
+			<%=connPropertiesName%>.ACCOUNT_ID = <%=cid%>.getCurrentProperty().getAccountId();
+			<%=connPropertiesName%>.PROPERTY_NAME = <%=cid%>.getCurrentProperty().getName();
+			<%=connPropertiesName%>.PROPERTY_DISPLAY_NAME = <%=cid%>.getCurrentProperty().getDisplayName();
+			<%=connPropertiesName%>.PROPERTY_CREATED = <%=cid%>.getCurrentProperty().getCreated();
+			<%=connPropertiesName%>.PROPERTY_UPDATED = <%=cid%>.getCurrentProperty().getUpdated();
+			<%=connPropertiesName%>.PROPERTY_EXPIRE_TIME = <%=cid%>.getCurrentProperty().getExpire();
+			<%=connPropertiesName%>.PROPERTY_SERVICE_LEVEL = <%=cid%>.getCurrentProperty().getServiceLevel();
+			<%=connPropertiesName%>.PROPERTY_CURRENCY_CODE = <%=cid%>.getCurrentProperty().getCurrencyCode();
+		    countProperties_<%=cid%>++;
+		} else {
+			<%=connPropertiesName%> = null;
+		}
+<%  } %>
+<%  if (connCommonDimensionsName != null) { %>
+		if (<%=cid%>.hasCurrentCommonDimension()) {
+		    <%=connCommonDimensionsName%> = new <%=connCommonDimensionsName%>Struct();
+			<%=connCommonDimensionsName%>.API_NAME = <%=cid%>.getCurrentCommonDimension().getApiName();
+			<%=connCommonDimensionsName%>.UI_NAME = <%=cid%>.getCurrentCommonDimension().getUiName();
+			<%=connCommonDimensionsName%>.CATEGORY = <%=cid%>.getCurrentCommonDimension().getCategory();
+			<%=connCommonDimensionsName%>.DESCRIPTION = <%=cid%>.getCurrentCommonDimension().getDescription();
+			<%=connCommonDimensionsName%>.DEPRECATED_API_NAMES = <%=cid%>.getCurrentCommonDimension().getDeprecatedApiNames();
+		    countCommonDimensions_<%=cid%>++;
+		} else {
+			<%=connCommonDimensionsName%> = null;
+		}
+<%  } %>
+<%  if (connCommonMetricsName != null) { %>
+		if (<%=cid%>.hasCurrentCommonMetric()) {
+		    <%=connCommonMetricsName%> = new <%=connCommonMetricsName%>Struct();
+			<%=connCommonMetricsName%>.API_NAME = <%=cid%>.getCurrentCommonMetric().getApiName();
+			<%=connCommonMetricsName%>.UI_NAME = <%=cid%>.getCurrentCommonMetric().getUiName();
+			<%=connCommonMetricsName%>.CATEGORY = <%=cid%>.getCurrentCommonMetric().getCategory();
+			<%=connCommonMetricsName%>.EXPRESSION = <%=cid%>.getCurrentCommonMetric().getExpression();
+			<%=connCommonMetricsName%>.MEASUREMENT_UNIT = <%=cid%>.getCurrentCommonMetric().getMeasurementUnit();
+			<%=connCommonMetricsName%>.DESCRIPTION = <%=cid%>.getCurrentCommonMetric().getDescription();
+			<%=connCommonMetricsName%>.DEPRECATED_API_NAMES = <%=cid%>.getCurrentCommonMetric().getDeprecatedApiNames();
+		    countCommonMetrics_<%=cid%>++;
+		} else {
+			<%=connCommonMetricsName%> = null;
+		}
+<%  } %>
+<%  if (connCustomDimensionsName != null) { %>
+		if (<%=cid%>.hasCurrentCustomDimension()) {
+		    <%=connCustomDimensionsName%> = new <%=connCustomDimensionsName%>Struct();
+			<%=connCustomDimensionsName%>.PROPERTY_ID = <%=cid%>.getCurrentCustomDimension().getPropertyId();
+			<%=connCustomDimensionsName%>.API_NAME = <%=cid%>.getCurrentCustomDimension().getApiName();
+			<%=connCustomDimensionsName%>.UI_NAME = <%=cid%>.getCurrentCustomDimension().getUiName();
+			<%=connCustomDimensionsName%>.SCOPE = <%=cid%>.getCurrentCustomDimension().getScope();
+			<%=connCustomDimensionsName%>.DESCRIPTION = <%=cid%>.getCurrentCustomDimension().getDescription();
+		    countCustomDimensions_<%=cid%>++;
+		} else {
+			<%=connCustomDimensionsName%> = null;
+		}
+<%  } %>
+<%  if (connCustomMetricsName != null) { %>
+		if (<%=cid%>.hasCurrentCustomMetric()) {
+		    <%=connCustomMetricsName%> = new <%=connCustomMetricsName%>Struct();
+			<%=connCustomMetricsName%>.PROPERTY_ID = <%=cid%>.getCurrentCustomMetric().getPropertyId();
+			<%=connCustomMetricsName%>.API_NAME = <%=cid%>.getCurrentCustomMetric().getApiName();
+			<%=connCustomMetricsName%>.UI_NAME = <%=cid%>.getCurrentCustomMetric().getUiName();
+			<%=connCustomMetricsName%>.MEASUREMENT_UNIT = <%=cid%>.getCurrentCustomMetric().getMeasurementUnit();
+			<%=connCustomMetricsName%>.SCOPE = <%=cid%>.getCurrentCustomMetric().getScope();
+			<%=connCustomMetricsName%>.DESCRIPTION = <%=cid%>.getCurrentCustomMetric().getDescription();
+			<%=connCustomMetricsName%>.PARAMETER_NAME = <%=cid%>.getCurrentCustomMetric().getParameterName();
+		    countCustomMetrics_<%=cid%>++;
+		} else {
+			<%=connCustomMetricsName%> = null;
+		}
+<%  } %>
 	

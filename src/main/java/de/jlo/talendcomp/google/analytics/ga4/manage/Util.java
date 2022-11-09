@@ -27,6 +27,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+import com.google.analytics.admin.v1beta.Account;
+import com.google.analytics.admin.v1beta.Property;
+
 
 public class Util {
 	
@@ -190,5 +193,57 @@ public class Util {
 			throw new Exception("convertToBigDecimal:" + value + " failed:" + e.getMessage(), e);
 		}
 	}
+	
+	public static long getId(Account a) throws Exception {
+		if (a == null) {
+			throw new IllegalArgumentException("Account cannot be null");
+		}
+		return getId(a.getName());
+	}
 
+	public static long getId(Property p) throws Exception {
+		if (p == null) {
+			throw new IllegalArgumentException("Property cannot be null");
+		}
+		return getId(p.getName());
+	}
+
+	public static long getId(String name) throws Exception {
+		if (name == null || name.trim().isEmpty()) {
+			throw new IllegalArgumentException("Object name cannot be null or empty");
+		}
+		int pos = name.indexOf("/");
+		if (pos != -1) {
+			String idstr = name.substring(pos + 1);
+			return Long.parseLong(idstr);
+		} else {
+			throw new Exception("Object name not like pattern accounts/1234 or properties/1234. Current name: " + name);
+		}
+	}
+	
+	public static Date getDate(com.google.protobuf.Timestamp t) {
+		if (t != null) {
+			return new Date(t.getSeconds() * 1000);
+		} else {
+			return null;
+		}
+	}
+	
+	public static String getListValues(List<String> l) {
+		if (l == null) {
+			return null;
+		} else {
+			StringBuilder sb = new StringBuilder();
+			boolean firstLoop = true;
+			for (String v : l) {
+				if (firstLoop) {
+					firstLoop = false;
+				} else {
+					sb.append(",");
+				}
+				sb.append(v);
+			}
+			return sb.toString();
+		}
+	}
 }

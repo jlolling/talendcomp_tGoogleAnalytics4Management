@@ -133,7 +133,7 @@ public class GoogleAnalyticsBase {
 	public void close() {
 		if (analyticsDataClient != null) {
 			try {
-				analyticsDataClient.shutdownNow();
+				analyticsDataClient.shutdown();
 			} catch (Throwable t) {}
 		}
 	}

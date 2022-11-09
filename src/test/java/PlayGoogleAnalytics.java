@@ -25,7 +25,11 @@ public class PlayGoogleAnalytics {
 		System.out.println("initialize clients....");
 		gi.initializeAdminClient();
 		System.out.println("collect data...");
-		gi.collectAll();
+		gi.collectAccounts();
+		gi.collectProperties();
+		gi.collectDimensionAndMetrics();
+		gi.collectCustomDimensions();
+		gi.collectCustomMetrics();
 		gi.close();
 	}
 		

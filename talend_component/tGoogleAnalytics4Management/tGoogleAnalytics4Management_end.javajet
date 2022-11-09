@@ -1,12 +1,20 @@
 <%@ jet 
 	imports="
-		org.talend.core.model.process.INode 
-		org.talend.core.model.process.ElementParameterParser 
+		org.talend.core.model.process.INode
 		org.talend.designer.codegen.config.CodeGeneratorArgument
 	" 
 %>
-<% 
+<%
     CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
     INode node = (INode) codeGenArgument.getArgument();
-    String cid = node.getUniqueName(); 
+    String cid = node.getUniqueName();
 %>
+	} // close while from output connection of <%=cid%> 
+	globalMap.put("<%=cid%>_ACCOUNTS_NB_LINE", countAccounts_<%=cid%>);
+	globalMap.put("<%=cid%>_PROPERTIES_NB_LINE", countProperties_<%=cid%>);
+	globalMap.put("<%=cid%>_COMMON_DIMENSIONS_NB_LINE", countCommonDimensions_<%=cid%>);
+	globalMap.put("<%=cid%>_COMMON_METRICS_NB_LINE", countCommonMetrics_<%=cid%>);
+	globalMap.put("<%=cid%>_CUSTOM_DIMEMSIONS_NB_LINE", countCustomDimensions_<%=cid%>);
+	globalMap.put("<%=cid%>_CUSTOM_METRICS_NB_LINE", countCustomMetrics_<%=cid%>);
+	<%=cid%>.close();
+	
