@@ -15,7 +15,7 @@ public class AccountWrapper {
 		this.account = a;
 	}
 	
-	public long getId() throws Exception {
+	public long getId() {
 		return Util.getId(account);
 	}
 	
@@ -41,6 +41,14 @@ public class AccountWrapper {
 	
 	public boolean isDeleted() {
 		return account.getDeleted();
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if (o instanceof AccountWrapper) {
+			return ((AccountWrapper) o).getId() == getId();
+		}
+		return false;
 	}
 
 }

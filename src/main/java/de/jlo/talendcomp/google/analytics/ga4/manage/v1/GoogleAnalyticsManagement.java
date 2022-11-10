@@ -19,23 +19,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import com.google.analytics.admin.v1beta.Account;
 import com.google.analytics.admin.v1beta.AnalyticsAdminServiceClient;
 import com.google.analytics.admin.v1beta.AnalyticsAdminServiceClient.ListAccountsPage;
 import com.google.analytics.admin.v1beta.AnalyticsAdminServiceClient.ListAccountsPagedResponse;
-import com.google.analytics.admin.v1beta.AnalyticsAdminServiceClient.ListCustomDimensionsPage;
-import com.google.analytics.admin.v1beta.AnalyticsAdminServiceClient.ListCustomDimensionsPagedResponse;
-import com.google.analytics.admin.v1beta.AnalyticsAdminServiceClient.ListCustomMetricsPage;
-import com.google.analytics.admin.v1beta.AnalyticsAdminServiceClient.ListCustomMetricsPagedResponse;
 import com.google.analytics.admin.v1beta.AnalyticsAdminServiceClient.ListPropertiesPage;
 import com.google.analytics.admin.v1beta.AnalyticsAdminServiceClient.ListPropertiesPagedResponse;
 import com.google.analytics.admin.v1beta.AnalyticsAdminServiceSettings;
-import com.google.analytics.admin.v1beta.CustomDimension;
-import com.google.analytics.admin.v1beta.CustomMetric;
 import com.google.analytics.admin.v1beta.ListAccountsRequest;
-import com.google.analytics.admin.v1beta.ListCustomDimensionsRequest;
-import com.google.analytics.admin.v1beta.ListCustomMetricsRequest;
 import com.google.analytics.admin.v1beta.ListPropertiesRequest;
 import com.google.analytics.admin.v1beta.Property;
 import com.google.analytics.data.v1beta.DimensionMetadata;
@@ -46,8 +39,6 @@ import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.api.gax.rpc.ApiException;
 
 import de.jlo.talendcomp.google.analytics.ga4.manage.AccountWrapper;
-import de.jlo.talendcomp.google.analytics.ga4.manage.CustomDimensionWrapper;
-import de.jlo.talendcomp.google.analytics.ga4.manage.CustomMetricWrapper;
 import de.jlo.talendcomp.google.analytics.ga4.manage.DimensionWrapper;
 import de.jlo.talendcomp.google.analytics.ga4.manage.GoogleAnalyticsBase;
 import de.jlo.talendcomp.google.analytics.ga4.manage.MetricWrapper;
@@ -60,12 +51,10 @@ public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
 	private int expectedCountDimensions = 0;
 	private int expectedCountMetrics = 0;
 	private AnalyticsAdminServiceClient analyticsAdmin = null;
-	private List<DimensionMetadata> listDimensionsMetadata;
-	private List<MetricMetadata> listMetricMetadata;
+	private List<DimensionWrapper> listDimensionsMetadata = new ArrayList<>();
+	private List<MetricWrapper> listMetricMetadata = new ArrayList<>();
 	private List<AccountWrapper> listAccounts;
 	private List<PropertyWrapper> listProperties;
-	private List<CustomDimensionWrapper> listCustomDimensions;
-	private List<CustomMetricWrapper> listCustomMetrics;
 	private int currentIndex = 0;
 	private int maxRows = 0;
 	private long waitMillisBetweenRequests = 200;
@@ -132,69 +121,27 @@ public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
 		Thread.sleep(waitMillisBetweenRequests);
 	}
 
-	public void collectCustomDimensions() throws Exception {
-		info("Collect GA4 custom dimensions");
-		if (analyticsAdmin == null) {
-			throw new IllegalStateException("Analytics Admin Client not initialized");
-		}
-		if (listProperties == null) {
-			throw new IllegalStateException("No properties collected before. We need properties to filter the custom dimensions");
-		}
-		listCustomDimensions = new ArrayList<>();
-		for (PropertyWrapper property : listProperties) {
-			info("Collect custom dimensions for property: " + property.getName() + " (" + property.getDisplayName() + ")");
-			ListCustomDimensionsRequest.Builder builder = ListCustomDimensionsRequest.newBuilder();
-			builder.setParent(property.getName());
-			ListCustomDimensionsPagedResponse response = analyticsAdmin.listCustomDimensions(builder.build());
-			for (ListCustomDimensionsPage page : response.iteratePages()) {
-				for (CustomDimension item : page.iterateAll()) {
-					CustomDimensionWrapper w = new CustomDimensionWrapper(item);
-					w.setPropertyId(property.getId());
-					listCustomDimensions.add(w);
-					info("* custom dimension: " + item.getName() + " (" + item.getDisplayName() + ")");
-				}
-			}
-			Thread.sleep(waitMillisBetweenRequests);
-		}
-		info(listCustomDimensions.size() + " custom dimensions received");
-		setMaxRows(listCustomDimensions.size());
-	}
-
-	public void collectCustomMetrics() throws Exception {
-		info("Collect GA4 custom metrics");
-		if (analyticsAdmin == null) {
-			throw new IllegalStateException("Analytics Admin Client not initialized");
-		}
-		if (listProperties == null) {
-			throw new IllegalStateException("No properties collected before. We need properties to filter the custom metrics");
-		}
-		listCustomMetrics = new ArrayList<>();
-		for (PropertyWrapper property : listProperties) {
-			info("Collect custom metrics for property: " + property.getName() + " (" + property.getDisplayName() + ")");
-			ListCustomMetricsRequest.Builder builder = ListCustomMetricsRequest.newBuilder();
-			builder.setParent(property.getName());
-			ListCustomMetricsPagedResponse response = analyticsAdmin.listCustomMetrics(builder.build());
-			for (ListCustomMetricsPage page : response.iteratePages()) {
-				for (CustomMetric item : page.iterateAll()) {
-					CustomMetricWrapper w = new CustomMetricWrapper(item);
-					w.setPropertyId(property.getId());
-					listCustomMetrics.add(w);
-					info("* custom metric: " + item.getName() + " (" + item.getDisplayName() + ")");
-				}
-			}
-			Thread.sleep(waitMillisBetweenRequests);
-		}
-		info(listCustomMetrics.size() + " custom metrics received");
-		setMaxRows(listCustomMetrics.size());
-	}
-
 	private int maxRetriesInCaseOfErrors = 5;
 	private int currentAttempt = 0;
 	
 	public void collectDimensionAndMetrics() throws Exception {
-		info("Collect GA4 dimensions and metrics");
+		collectDimensionAndMetrics(0l);
+		if (listProperties == null) {
+			throw new IllegalStateException("No properties collected before. We need properties to filter the custom metrics");
+		}
+		for (PropertyWrapper p : listProperties) {
+			collectDimensionAndMetrics(p.getId());
+		}
+	}
+	
+	public void collectDimensionAndMetrics(long propertyId) throws Exception {
+		if (propertyId == 0) {
+			info("Collect GA4 dimensions and metrics for ALL properties");
+		} else {
+			info("Collect GA4 dimensions and metrics for propertyId=" + propertyId);
+		}
 		GetMetadataRequest.Builder requestBuilder = GetMetadataRequest.newBuilder();
-		requestBuilder.setName("properties/0/metadata"); // propertyId=0 means only common dimensions and metrics
+		requestBuilder.setName("properties/" + propertyId + "/metadata"); // propertyId=0 means only common dimensions and metrics
 		GetMetadataRequest request = requestBuilder.build();
 		Metadata responseMetadata = null;
 		int waitTime = 1000;
@@ -228,9 +175,26 @@ public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
 		setMaxRows(expectedCountDimensions);
 		expectedCountMetrics = responseMetadata.getMetricsCount();
 		setMaxRows(expectedCountMetrics);
-		info(expectedCountDimensions + " dimensions and " + expectedCountMetrics + " metrics received");
-		listDimensionsMetadata = responseMetadata.getDimensionsList();
-		listMetricMetadata = responseMetadata.getMetricsList();
+		info("Dimensions for propertyId: " + propertyId);
+		List<DimensionMetadata> listD = responseMetadata.getDimensionsList();
+		for (DimensionMetadata d : listD) {
+			if (propertyId == 0 || (propertyId > 0 && d.getCustomDefinition())) {
+				DimensionWrapper w = new DimensionWrapper(d);
+				w.setPropertyId(propertyId);
+				listDimensionsMetadata.add(w);
+				info("* " + w.toString());
+			}
+		}
+		info("Metrics for propertyId: " + propertyId);
+		List<MetricMetadata> listM = responseMetadata.getMetricsList();
+		for (MetricMetadata m : listM) {
+			if (propertyId == 0 || (propertyId > 0 && m.getCustomDefinition())) {
+				MetricWrapper w = new MetricWrapper(m);
+				w.setPropertyId(propertyId);
+				listMetricMetadata.add(w);
+				info("* " + w.toString());
+			}
+		}
 		Thread.sleep(waitMillisBetweenRequests);
 	}
 	
@@ -244,7 +208,7 @@ public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
 		return ++currentIndex <= maxRows;
 	}
 	
-	public boolean hasCurrentCommonDimension() {
+	public boolean hasCurrentDimension() {
 		if (listDimensionsMetadata != null) {
 			return currentIndex <= listDimensionsMetadata.size();
 		} else {
@@ -252,7 +216,7 @@ public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
 		}
 	}
 
-	public boolean hasCurrentCommonMetric() {
+	public boolean hasCurrentMetric() {
 		if (listMetricMetadata != null) {
 			return currentIndex <= listMetricMetadata.size();
 		} else {
@@ -276,39 +240,23 @@ public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
 		}
 	}
 
-	public boolean hasCurrentCustomDimension() {
-		if (listCustomDimensions != null) {
-			return currentIndex <= listCustomDimensions.size();
-		} else {
-			return false;
-		}
-	}
-
-	public boolean hasCurrentCustomMetric() {
-		if (listCustomMetrics != null) {
-			return currentIndex <= listCustomMetrics.size();
-		} else {
-			return false;
-		}
-	}
-
-	public DimensionWrapper getCurrentCommonDimension() {
+	public DimensionWrapper getCurrentDimension() {
 		if (currentIndex == 0) {
 			throw new IllegalStateException("Call collectDimensionAndMetrics() before!");
 		}
 		if (currentIndex <= listDimensionsMetadata.size()) {
-			return new DimensionWrapper(listDimensionsMetadata.get(currentIndex - 1));
+			return listDimensionsMetadata.get(currentIndex - 1);
 		} else {
 			return null;
 		}
 	}
 	
-	public MetricWrapper getCurrentCommonMetric() {
+	public MetricWrapper getCurrentMetric() {
 		if (currentIndex == 0) {
 			throw new IllegalStateException("Call collectDimensionAndMetrics() before!");
 		}
 		if (currentIndex <= listMetricMetadata.size()) {
-			return new MetricWrapper(listMetricMetadata.get(currentIndex - 1));
+			return listMetricMetadata.get(currentIndex - 1);
 		} else {
 			return null;
 		}
@@ -336,33 +284,17 @@ public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
 		}
 	}
 
-	public CustomDimensionWrapper getCurrentCustomDimension() {
-		if (currentIndex == 0) {
-			throw new IllegalStateException("Call collectCustomDimensions() before!");
-		}
-		if (currentIndex <= listCustomDimensions.size()) {
-			return listCustomDimensions.get(currentIndex - 1);
-		} else {
-			return null;
-		}
-	}
-
-	public CustomMetricWrapper getCurrentCustomMetric() {
-		if (currentIndex == 0) {
-			throw new IllegalStateException("Call collectCustomMetrics() before!");
-		}
-		if (currentIndex <= listCustomMetrics.size()) {
-			return listCustomMetrics.get(currentIndex - 1);
-		} else {
-			return null;
-		}
-	}
-
 	@Override
 	public void close() {
+		info("Close clients");
 		if (analyticsAdmin != null) {
 			try {
 				analyticsAdmin.shutdown();
+				while (true) {
+					if (analyticsAdmin.awaitTermination(10000, TimeUnit.MILLISECONDS)) {
+						break;
+					}
+				}
 			} catch (Throwable t) {}
 		}
 		super.close();

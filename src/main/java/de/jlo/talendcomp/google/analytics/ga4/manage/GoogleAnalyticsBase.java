@@ -21,6 +21,7 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -134,6 +135,11 @@ public class GoogleAnalyticsBase {
 		if (analyticsDataClient != null) {
 			try {
 				analyticsDataClient.shutdown();
+				while (true) {
+					if (analyticsDataClient.awaitTermination(10000, TimeUnit.MILLISECONDS)) {
+						break;
+					}
+				}
 			} catch (Throwable t) {}
 		}
 	}

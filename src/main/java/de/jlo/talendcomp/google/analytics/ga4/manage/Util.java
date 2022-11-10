@@ -194,21 +194,21 @@ public class Util {
 		}
 	}
 	
-	public static long getId(Account a) throws Exception {
+	public static long getId(Account a) {
 		if (a == null) {
 			throw new IllegalArgumentException("Account cannot be null");
 		}
 		return getId(a.getName());
 	}
 
-	public static long getId(Property p) throws Exception {
+	public static long getId(Property p) {
 		if (p == null) {
 			throw new IllegalArgumentException("Property cannot be null");
 		}
 		return getId(p.getName());
 	}
 
-	public static long getId(String name) throws Exception {
+	public static long getId(String name) {
 		if (name == null || name.trim().isEmpty()) {
 			throw new IllegalArgumentException("Object name cannot be null or empty");
 		}
@@ -217,7 +217,7 @@ public class Util {
 			String idstr = name.substring(pos + 1);
 			return Long.parseLong(idstr);
 		} else {
-			throw new Exception("Object name not like pattern accounts/1234 or properties/1234. Current name: " + name);
+			throw new IllegalArgumentException("Object name not like pattern accounts/1234 or properties/1234. Current name: " + name);
 		}
 	}
 	

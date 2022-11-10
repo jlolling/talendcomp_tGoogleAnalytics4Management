@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <COMPONENT> 
-  <HEADER PLATEFORM="ALL" SERIAL="" VERSION="1.0" STATUS="PROD" COMPATIBILITY="ALL" AUTHOR="Jan Lolling" RELEASE_DATE="20221109" HAS_CONDITIONAL_OUTPUTS="true" STARTABLE="true"> 
+  <HEADER PLATEFORM="ALL" SERIAL="" VERSION="1.1" STATUS="PROD" COMPATIBILITY="ALL" AUTHOR="Jan Lolling" RELEASE_DATE="20221110" HAS_CONDITIONAL_OUTPUTS="true" STARTABLE="true"> 
     <SIGNATURE/> 
   </HEADER>  
   <FAMILIES> 
@@ -19,10 +19,8 @@
     <CONNECTOR CTYPE="RUN_IF"/>  
     <CONNECTOR NAME="ACCOUNTS" CTYPE="FLOW" MAX_INPUT="0" MAX_OUTPUT="1" LINE_STYLE="1"/>  
     <CONNECTOR NAME="PROPERTIES" CTYPE="FLOW" MAX_INPUT="0" MAX_OUTPUT="1" LINE_STYLE="1"/>  
-    <CONNECTOR NAME="COMMON_DIMENSIONS" CTYPE="FLOW" MAX_INPUT="0" MAX_OUTPUT="1" LINE_STYLE="1"/>  
-    <CONNECTOR NAME="COMMON_METRICS" CTYPE="FLOW" MAX_INPUT="0" MAX_OUTPUT="1" LINE_STYLE="1"/>  
-    <CONNECTOR NAME="CUSTOM_DIMENSIONS" CTYPE="FLOW" MAX_INPUT="0" MAX_OUTPUT="1" LINE_STYLE="1"/>  
-    <CONNECTOR NAME="CUSTOM_METRICS" CTYPE="FLOW" MAX_INPUT="0" MAX_OUTPUT="1" LINE_STYLE="1"/> 
+    <CONNECTOR NAME="DIMENSIONS" CTYPE="FLOW" MAX_INPUT="0" MAX_OUTPUT="1" LINE_STYLE="1"/>  
+    <CONNECTOR NAME="METRICS" CTYPE="FLOW" MAX_INPUT="0" MAX_OUTPUT="1" LINE_STYLE="1"/> 
   </CONNECTORS>  
   <PARAMETERS> 
     <PARAMETER FIELD="FILE" NAME="JSON_KEY_FILE" NUM_ROW="21" REQUIRED="true" GROUP="CLIENT"> 
@@ -52,44 +50,28 @@
         <COLUMN NAME="PROPERTY_CURRENCY_CODE" TYPE="id_String" READONLY="true" CUSTOM="true" LENGTH="512" NULLABLE="true" COMMENT=""/> 
       </TABLE> 
     </PARAMETER>  
-    <PARAMETER NAME="SCHEMA_COMMON_DIMENSIONS" FIELD="SCHEMA_TYPE" REQUIRED="true" NUM_ROW="103" CONTEXT="COMMON_DIMENSIONS"> 
+    <PARAMETER NAME="SCHEMA_DIMENSIONS" FIELD="SCHEMA_TYPE" REQUIRED="true" NUM_ROW="103" CONTEXT="DIMENSIONS"> 
       <TABLE READONLY="true"> 
+        <COLUMN NAME="PROPERTY_ID" TYPE="id_Long" READONLY="true" CUSTOM="true" KEY="true" NULLABLE="false" COMMENT="PropertyId in case of custom definition, otherwise 0"/>  
         <COLUMN NAME="API_NAME" TYPE="id_String" READONLY="true" CUSTOM="true" LENGTH="64" KEY="true" NULLABLE="false" COMMENT="Name to be used in the API requests"/>  
-        <COLUMN NAME="UI_NAME" TYPE="id_String" READONLY="true" CUSTOM="true" LENGTH="64" NULLABLE="false" COMMENT="This dimension's name within the Google Analytics user interface"/>  
+        <COLUMN NAME="UI_NAME" TYPE="id_String" READONLY="true" CUSTOM="true" LENGTH="64" NULLABLE="true" COMMENT="This dimension's name within the Google Analytics user interface"/>  
         <COLUMN NAME="CATEGORY" TYPE="id_String" READONLY="true" CUSTOM="true" LENGTH="128" KEY="false" NULLABLE="false" COMMENT="The display name of the category that this dimension belongs to"/>  
         <COLUMN NAME="DESCRIPTION" TYPE="id_String" READONLY="true" COMMENT="Description of the column" CUSTOM="true" LENGTH="1024" NULLABLE="true"/>  
-        <COLUMN NAME="DEPRECATED_API_NAMES" TYPE="id_String" COMMENT="Still usable but deprecated names for this dimension" READONLY="true" CUSTOM="true" LENGTH="512" NULLABLE="true"/> 
+        <COLUMN NAME="DEPRECATED_API_NAMES" TYPE="id_String" COMMENT="Still usable but deprecated names for this dimension" READONLY="true" CUSTOM="true" LENGTH="512" NULLABLE="true"/>  
+        <COLUMN NAME="IS_CUSTOM" TYPE="id_Boolean" COMMENT="It is a custom dimension" READONLY="true" CUSTOM="true" NULLABLE="false"/> 
       </TABLE> 
     </PARAMETER>  
-    <PARAMETER NAME="SCHEMA_COMMON_METRICS" FIELD="SCHEMA_TYPE" REQUIRED="true" NUM_ROW="104" CONTEXT="COMMON_METRICS"> 
+    <PARAMETER NAME="SCHEMA_METRICS" FIELD="SCHEMA_TYPE" REQUIRED="true" NUM_ROW="104" CONTEXT="METRICS"> 
       <TABLE READONLY="true"> 
+        <COLUMN NAME="PROPERTY_ID" TYPE="id_Long" READONLY="true" CUSTOM="true" KEY="true" NULLABLE="false" COMMENT="PropertyId in case of custom definition, otherwise 0"/>  
         <COLUMN NAME="API_NAME" TYPE="id_String" READONLY="true" CUSTOM="true" LENGTH="64" KEY="true" NULLABLE="false" COMMENT="Name to be used in the API requests"/>  
-        <COLUMN NAME="UI_NAME" TYPE="id_String" READONLY="true" CUSTOM="true" LENGTH="64" NULLABLE="false" COMMENT="This metrics's name within the Google Analytics user interface"/>  
+        <COLUMN NAME="UI_NAME" TYPE="id_String" READONLY="true" CUSTOM="true" LENGTH="64" NULLABLE="true" COMMENT="This metrics's name within the Google Analytics user interface"/>  
         <COLUMN NAME="CATEGORY" TYPE="id_String" READONLY="true" CUSTOM="true" LENGTH="128" NULLABLE="false" COMMENT="The display name of the category that this metric belongs to"/>  
         <COLUMN NAME="EXPRESSION" TYPE="id_String" READONLY="true" COMMENT="The mathematical expression for this derived metric" CUSTOM="true" LENGTH="1024" NULLABLE="true"/>  
         <COLUMN NAME="MEASUREMENT_UNIT" TYPE="id_String" READONLY="true" COMMENT="The type of this metric (unit)" CUSTOM="true" LENGTH="32" NULLABLE="false"/>  
         <COLUMN NAME="DESCRIPTION" TYPE="id_String" READONLY="true" COMMENT="Description of the column" CUSTOM="true" LENGTH="1024" NULLABLE="true"/>  
-        <COLUMN NAME="DEPRECATED_API_NAMES" TYPE="id_String" COMMENT="Still usable but deprecated names for this metric" READONLY="true" CUSTOM="true" LENGTH="512" NULLABLE="true"/> 
-      </TABLE> 
-    </PARAMETER>  
-    <PARAMETER NAME="SCHEMA_CUSTOM_DIMENSIONS" FIELD="SCHEMA_TYPE" REQUIRED="true" NUM_ROW="105" CONTEXT="CUSTOM_DIMENSIONS"> 
-      <TABLE READONLY="true"> 
-        <COLUMN NAME="PROPERTY_ID" TYPE="id_Long" READONLY="true" CUSTOM="true" KEY="true" NULLABLE="false"/>  
-        <COLUMN NAME="API_NAME" TYPE="id_String" READONLY="true" CUSTOM="true" LENGTH="64" KEY="true" NULLABLE="false" COMMENT="Name to be used in the API requests"/>  
-        <COLUMN NAME="UI_NAME" TYPE="id_String" READONLY="true" CUSTOM="true" LENGTH="64" NULLABLE="false" COMMENT="This dimension's name within the Google Analytics user interface"/>  
-        <COLUMN NAME="SCOPE" TYPE="id_String" READONLY="true" CUSTOM="true" LENGTH="128" NULLABLE="false" COMMENT="The scope of this dimension (EVENT, USER)"/>  
-        <COLUMN NAME="DESCRIPTION" TYPE="id_String" READONLY="true" COMMENT="Description of the column" CUSTOM="true" LENGTH="1024" NULLABLE="true"/> 
-      </TABLE> 
-    </PARAMETER>  
-    <PARAMETER NAME="SCHEMA_CUSTOM_METRICS" FIELD="SCHEMA_TYPE" REQUIRED="true" NUM_ROW="106" CONTEXT="CUSTOM_METRICS"> 
-      <TABLE READONLY="true"> 
-        <COLUMN NAME="PROPERTY_ID" TYPE="id_Long" READONLY="true" CUSTOM="true" KEY="true" NULLABLE="false"/>  
-        <COLUMN NAME="API_NAME" TYPE="id_String" READONLY="true" CUSTOM="true" LENGTH="64" KEY="true" NULLABLE="false" COMMENT="Name to be used in the API requests"/>  
-        <COLUMN NAME="UI_NAME" TYPE="id_String" READONLY="true" CUSTOM="true" LENGTH="64" NULLABLE="false" COMMENT="This metrics's name within the Google Analytics user interface"/>  
-        <COLUMN NAME="MEASUREMENT_UNIT" TYPE="id_String" READONLY="true" COMMENT="The type of this metric (unit)" CUSTOM="true" LENGTH="32" NULLABLE="false"/>  
-        <COLUMN NAME="SCOPE" TYPE="id_String" READONLY="true" CUSTOM="true" LENGTH="128" KEY="false" NULLABLE="false" COMMENT="The scope of this metric (EVENT, USER)"/>  
-        <COLUMN NAME="DESCRIPTION" TYPE="id_String" READONLY="true" COMMENT="Description of the column" CUSTOM="true" LENGTH="1024" NULLABLE="true"/>  
-        <COLUMN NAME="PARAMETER_NAME" TYPE="id_String" READONLY="true" COMMENT="Tagging name for this custom metric" CUSTOM="true" LENGTH="64" NULLABLE="true"/> 
+        <COLUMN NAME="DEPRECATED_API_NAMES" TYPE="id_String" COMMENT="Still usable but deprecated names for this metric" READONLY="true" CUSTOM="true" LENGTH="512" NULLABLE="true"/>  
+        <COLUMN NAME="IS_CUSTOM" TYPE="id_Boolean" COMMENT="It is a custom metric" READONLY="true" CUSTOM="true" NULLABLE="false"/> 
       </TABLE> 
     </PARAMETER> 
   </PARAMETERS>  
@@ -97,13 +79,13 @@
     <PARAMETER FIELD="TEXT" NAME="WAIT_TIME_BETWEEN_REQUESTS" NUM_ROW="10"> 
       <DEFAULT>800</DEFAULT> 
     </PARAMETER>  
-    <PARAMETER NAME="RELEASE_LABEL_20221109" FIELD="LABEL" COLOR="0;0;0" NUM_ROW="900">
-      <DEFAULT>Release: 1.0 build at: 20221109</DEFAULT>
+    <PARAMETER NAME="RELEASE_LABEL_20221110" FIELD="LABEL" COLOR="0;0;0" NUM_ROW="900">
+      <DEFAULT>Release: 1.1 build at: 20221110</DEFAULT>
     </PARAMETER>
   </ADVANCED_PARAMETERS>  
   <CODEGENERATION> 
     <IMPORTS> 
-      <IMPORT NAME="jlo-talendcomp-google-analytics4admin" MODULE="jlo-talendcomp-google-analytics4admin-1.0.jar" MVN="mvn:org.talend.libraries/jlo-talendcomp-google-analytics4admin-1.0/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="jlo-talendcomp-google-analytics4admin" MODULE="jlo-talendcomp-google-analytics4admin-1.1.jar" MVN="mvn:org.talend.libraries/jlo-talendcomp-google-analytics4admin-1.1/6.0.0-SNAPSHOT" REQUIRED="true"/>
       <IMPORT NAME="google-analytics-data" MODULE="google-analytics-data-0.16.0.jar" MVN="mvn:org.talend.libraries/google-analytics-data-0.16.0/6.0.0-SNAPSHOT" REQUIRED="true"/>
       <IMPORT NAME="grpc-context" MODULE="grpc-context-1.50.1.jar" MVN="mvn:org.talend.libraries/grpc-context-1.50.1/6.0.0-SNAPSHOT" REQUIRED="true"/>
       <IMPORT NAME="jsr305" MODULE="jsr305-3.0.2.jar" MVN="mvn:org.talend.libraries/jsr305-3.0.2/6.0.0-SNAPSHOT" REQUIRED="true"/>
@@ -163,9 +145,7 @@
   <RETURNS> 
     <RETURN AVAILABILITY="AFTER" NAME="ACCOUNTS_NB_LINE" TYPE="id_Integer"/>  
     <RETURN AVAILABILITY="AFTER" NAME="PROPERTIES_NB_LINE" TYPE="id_Integer"/>  
-    <RETURN AVAILABILITY="AFTER" NAME="COMMON_DIMENSIONS_NB_LINE" TYPE="id_Integer"/>  
-    <RETURN AVAILABILITY="AFTER" NAME="COMMON_METRICS_NB_LINE" TYPE="id_Integer"/>  
-    <RETURN AVAILABILITY="AFTER" NAME="CUSTOM_DIMEMSIONS_NB_LINE" TYPE="id_Integer"/>  
-    <RETURN AVAILABILITY="AFTER" NAME="CUSTOM_METRICS_NB_LINE" TYPE="id_Integer"/> 
+    <RETURN AVAILABILITY="AFTER" NAME="DIMENSIONS_NB_LINE" TYPE="id_Integer"/>  
+    <RETURN AVAILABILITY="AFTER" NAME="METRICS_NB_LINE" TYPE="id_Integer"/> 
   </RETURNS>
 </COMPONENT>

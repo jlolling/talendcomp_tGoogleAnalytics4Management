@@ -19,11 +19,11 @@ public class PropertyWrapper {
 		return property;
 	}
 	
-	public long getId() throws Exception {
+	public long getId() {
 		return Util.getId(property);
 	}
 	
-	public long getAccountId() throws Exception {
+	public long getAccountId() {
 		return Util.getId(property.getAccount());
 	}
 	
@@ -58,6 +58,14 @@ public class PropertyWrapper {
 		case 2: return "GOOGLE_ANALYTICS_360";
 		default: return "UNRECOGNIZED";
 		}
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o instanceof PropertyWrapper) {
+			return ((PropertyWrapper) o).getId() == getId();
+		}
+		return false;
 	}
 
 }

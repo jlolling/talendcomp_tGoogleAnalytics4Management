@@ -17,16 +17,12 @@
 	String maxAttempts = ElementParameterParser.getValue(node, "__MAX_ATTEMPTS__");
     List<? extends IConnection> connsAccounts = node.getOutgoingConnections("ACCOUNTS");
     List<? extends IConnection> connsProperties = node.getOutgoingConnections("PROPERTIES");
-    List<? extends IConnection> connsCommonDimensions = node.getOutgoingConnections("COMMON_DIMENSIONS");
-    List<? extends IConnection> connsCommonMetrics = node.getOutgoingConnections("COMMON_METRICS");
-    List<? extends IConnection> connsCustomDimensions = node.getOutgoingConnections("CUSTOM_DIMENSIONS");
-    List<? extends IConnection> connsCustomMetrics = node.getOutgoingConnections("CUSTOM_METRICS");
+    List<? extends IConnection> connsDimensions = node.getOutgoingConnections("DIMENSIONS");
+    List<? extends IConnection> connsMetrics = node.getOutgoingConnections("METRICS");
     String connAccountsName = null;
     String connPropertiesName = null;
-    String connCommonDimensionsName = null;
-    String connCommonMetricsName = null;
-    String connCustomDimensionsName = null;
-    String connCustomMetricsName = null;
+    String connDimensionsName = null;
+    String connMetricsName = null;
     if (connsAccounts != null && connsAccounts.size() > 0) {
     	IConnection connTemp = connsAccounts.get(0);
     	if (connTemp.getLineStyle().hasConnectionCategory(IConnectionCategory.DATA)) {
@@ -39,28 +35,16 @@
     		connPropertiesName = connTemp.getName();
     	}
     }
-    if (connsCommonDimensions != null && connsCommonDimensions.size() > 0) {
-    	IConnection connTemp = connsCommonDimensions.get(0);
+    if (connsDimensions != null && connsDimensions.size() > 0) {
+    	IConnection connTemp = connsDimensions.get(0);
     	if (connTemp.getLineStyle().hasConnectionCategory(IConnectionCategory.DATA)) {
-    		connCommonDimensionsName = connTemp.getName();
+    		connDimensionsName = connTemp.getName();
     	}
     }
-    if (connsCommonMetrics != null && connsCommonMetrics.size() > 0) {
-    	IConnection connTemp = connsCommonMetrics.get(0);
+    if (connsMetrics != null && connsMetrics.size() > 0) {
+    	IConnection connTemp = connsMetrics.get(0);
     	if (connTemp.getLineStyle().hasConnectionCategory(IConnectionCategory.DATA)) {
-    		connCommonMetricsName = connTemp.getName();
-    	}
-    }
-    if (connsCustomDimensions != null && connsCustomDimensions.size() > 0) {
-    	IConnection connTemp = connsCustomDimensions.get(0);
-    	if (connTemp.getLineStyle().hasConnectionCategory(IConnectionCategory.DATA)) {
-    		connCustomDimensionsName = connTemp.getName();
-    	}
-    }
-    if (connsCustomMetrics != null && connsCustomMetrics.size() > 0) {
-    	IConnection connTemp = connsCustomMetrics.get(0);
-    	if (connTemp.getLineStyle().hasConnectionCategory(IConnectionCategory.DATA)) {
-    		connCustomMetricsName = connTemp.getName();
+    		connMetricsName = connTemp.getName();
     	}
     }
 %>
@@ -76,7 +60,21 @@
 		globalMap.put("<%=cid%>_ERROR_MESSAGE", e.getMessage());
 		throw e;
     }
-<%	if (connCommonDimensionsName != null || connCommonMetricsName != null) { %>
+	try {
+		<%=cid%>.collectAccounts();
+	} catch (Exception e) {
+		globalMap.put("<%=cid%>_ERROR_MESSAGE", e.getMessage());
+		throw e;
+    }	
+<%	if (connPropertiesName != null || connDimensionsName != null || connMetricsName != null) { %>
+	try {
+		<%=cid%>.collectProperties();
+	} catch (Exception e) {
+		globalMap.put("<%=cid%>_ERROR_MESSAGE", e.getMessage());
+		throw e;
+    }	
+<%	} %>
+<%	if (connDimensionsName != null || connMetricsName != null) { %>
 	try {
 		<%=cid%>.collectDimensionAndMetrics();
 	} catch (Exception e) {
@@ -84,35 +82,10 @@
 		throw e;
     }	
 <%	} %>
-<%	if (connAccountsName != null || connPropertiesName != null || connCustomDimensionsName != null || connCustomMetricsName != null) { %>
-	try {
-		<%=cid%>.collectAccounts();
-		<%=cid%>.collectProperties();
-	} catch (Exception e) {
-		globalMap.put("<%=cid%>_ERROR_MESSAGE", e.getMessage());
-		throw e;
-    }	
-<%	} %>
-<%	if (connCustomDimensionsName != null) { %>
-	try {
-		<%=cid%>.collectCustomDimensions();
-	} catch (Exception e) {
-		globalMap.put("<%=cid%>_ERROR_MESSAGE", e.getMessage());
-		throw e;
-    }	
-<%	} %>
-<%	if (connCustomMetricsName != null) { %>
-	try {
-		<%=cid%>.collectCustomMetrics();
-	} catch (Exception e) {
-		globalMap.put("<%=cid%>_ERROR_MESSAGE", e.getMessage());
-		throw e;
-    }	
-<%	} %>
     int countAccounts_<%=cid%> = 0;
     int countProperties_<%=cid%> = 0;
-    int countCommonDimensions_<%=cid%> = 0;
-    int countCommonMetrics_<%=cid%> = 0;
+    int countDimensions_<%=cid%> = 0;
+    int countMetrics_<%=cid%> = 0;
     int countCustomDimensions_<%=cid%> = 0;
     int countCustomMetrics_<%=cid%> = 0;
     while (<%=cid%>.next()) {
@@ -149,60 +122,36 @@
 			<%=connPropertiesName%> = null;
 		}
 <%  } %>
-<%  if (connCommonDimensionsName != null) { %>
-		if (<%=cid%>.hasCurrentCommonDimension()) {
-		    <%=connCommonDimensionsName%> = new <%=connCommonDimensionsName%>Struct();
-			<%=connCommonDimensionsName%>.API_NAME = <%=cid%>.getCurrentCommonDimension().getApiName();
-			<%=connCommonDimensionsName%>.UI_NAME = <%=cid%>.getCurrentCommonDimension().getUiName();
-			<%=connCommonDimensionsName%>.CATEGORY = <%=cid%>.getCurrentCommonDimension().getCategory();
-			<%=connCommonDimensionsName%>.DESCRIPTION = <%=cid%>.getCurrentCommonDimension().getDescription();
-			<%=connCommonDimensionsName%>.DEPRECATED_API_NAMES = <%=cid%>.getCurrentCommonDimension().getDeprecatedApiNames();
-		    countCommonDimensions_<%=cid%>++;
+<%  if (connDimensionsName != null) { %>
+		if (<%=cid%>.hasCurrentDimension()) {
+		    <%=connDimensionsName%> = new <%=connDimensionsName%>Struct();
+			<%=connDimensionsName%>.PROPERTY_ID = <%=cid%>.getCurrentDimension().getPropertyId();
+			<%=connDimensionsName%>.API_NAME = <%=cid%>.getCurrentDimension().getApiName();
+			<%=connDimensionsName%>.UI_NAME = <%=cid%>.getCurrentDimension().getUiName();
+			<%=connDimensionsName%>.CATEGORY = <%=cid%>.getCurrentDimension().getCategory();
+			<%=connDimensionsName%>.DESCRIPTION = <%=cid%>.getCurrentDimension().getDescription();
+			<%=connDimensionsName%>.DEPRECATED_API_NAMES = <%=cid%>.getCurrentDimension().getDeprecatedApiNames();
+			<%=connDimensionsName%>.IS_CUSTOM = <%=cid%>.getCurrentDimension().isCustom();
+		    countDimensions_<%=cid%>++;
 		} else {
-			<%=connCommonDimensionsName%> = null;
+			<%=connDimensionsName%> = null;
 		}
 <%  } %>
-<%  if (connCommonMetricsName != null) { %>
-		if (<%=cid%>.hasCurrentCommonMetric()) {
-		    <%=connCommonMetricsName%> = new <%=connCommonMetricsName%>Struct();
-			<%=connCommonMetricsName%>.API_NAME = <%=cid%>.getCurrentCommonMetric().getApiName();
-			<%=connCommonMetricsName%>.UI_NAME = <%=cid%>.getCurrentCommonMetric().getUiName();
-			<%=connCommonMetricsName%>.CATEGORY = <%=cid%>.getCurrentCommonMetric().getCategory();
-			<%=connCommonMetricsName%>.EXPRESSION = <%=cid%>.getCurrentCommonMetric().getExpression();
-			<%=connCommonMetricsName%>.MEASUREMENT_UNIT = <%=cid%>.getCurrentCommonMetric().getMeasurementUnit();
-			<%=connCommonMetricsName%>.DESCRIPTION = <%=cid%>.getCurrentCommonMetric().getDescription();
-			<%=connCommonMetricsName%>.DEPRECATED_API_NAMES = <%=cid%>.getCurrentCommonMetric().getDeprecatedApiNames();
-		    countCommonMetrics_<%=cid%>++;
+<%  if (connMetricsName != null) { %>
+		if (<%=cid%>.hasCurrentMetric()) {
+		    <%=connMetricsName%> = new <%=connMetricsName%>Struct();
+			<%=connMetricsName%>.PROPERTY_ID = <%=cid%>.getCurrentMetric().getPropertyId();
+			<%=connMetricsName%>.API_NAME = <%=cid%>.getCurrentMetric().getApiName();
+			<%=connMetricsName%>.UI_NAME = <%=cid%>.getCurrentMetric().getUiName();
+			<%=connMetricsName%>.CATEGORY = <%=cid%>.getCurrentMetric().getCategory();
+			<%=connMetricsName%>.EXPRESSION = <%=cid%>.getCurrentMetric().getExpression();
+			<%=connMetricsName%>.MEASUREMENT_UNIT = <%=cid%>.getCurrentMetric().getMeasurementUnit();
+			<%=connMetricsName%>.DESCRIPTION = <%=cid%>.getCurrentMetric().getDescription();
+			<%=connMetricsName%>.DEPRECATED_API_NAMES = <%=cid%>.getCurrentMetric().getDeprecatedApiNames();
+			<%=connMetricsName%>.IS_CUSTOM = <%=cid%>.getCurrentMetric().isCustom();
+		    countMetrics_<%=cid%>++;
 		} else {
-			<%=connCommonMetricsName%> = null;
-		}
-<%  } %>
-<%  if (connCustomDimensionsName != null) { %>
-		if (<%=cid%>.hasCurrentCustomDimension()) {
-		    <%=connCustomDimensionsName%> = new <%=connCustomDimensionsName%>Struct();
-			<%=connCustomDimensionsName%>.PROPERTY_ID = <%=cid%>.getCurrentCustomDimension().getPropertyId();
-			<%=connCustomDimensionsName%>.API_NAME = <%=cid%>.getCurrentCustomDimension().getApiName();
-			<%=connCustomDimensionsName%>.UI_NAME = <%=cid%>.getCurrentCustomDimension().getUiName();
-			<%=connCustomDimensionsName%>.SCOPE = <%=cid%>.getCurrentCustomDimension().getScope();
-			<%=connCustomDimensionsName%>.DESCRIPTION = <%=cid%>.getCurrentCustomDimension().getDescription();
-		    countCustomDimensions_<%=cid%>++;
-		} else {
-			<%=connCustomDimensionsName%> = null;
-		}
-<%  } %>
-<%  if (connCustomMetricsName != null) { %>
-		if (<%=cid%>.hasCurrentCustomMetric()) {
-		    <%=connCustomMetricsName%> = new <%=connCustomMetricsName%>Struct();
-			<%=connCustomMetricsName%>.PROPERTY_ID = <%=cid%>.getCurrentCustomMetric().getPropertyId();
-			<%=connCustomMetricsName%>.API_NAME = <%=cid%>.getCurrentCustomMetric().getApiName();
-			<%=connCustomMetricsName%>.UI_NAME = <%=cid%>.getCurrentCustomMetric().getUiName();
-			<%=connCustomMetricsName%>.MEASUREMENT_UNIT = <%=cid%>.getCurrentCustomMetric().getMeasurementUnit();
-			<%=connCustomMetricsName%>.SCOPE = <%=cid%>.getCurrentCustomMetric().getScope();
-			<%=connCustomMetricsName%>.DESCRIPTION = <%=cid%>.getCurrentCustomMetric().getDescription();
-			<%=connCustomMetricsName%>.PARAMETER_NAME = <%=cid%>.getCurrentCustomMetric().getParameterName();
-		    countCustomMetrics_<%=cid%>++;
-		} else {
-			<%=connCustomMetricsName%> = null;
+			<%=connMetricsName%> = null;
 		}
 <%  } %>
 	

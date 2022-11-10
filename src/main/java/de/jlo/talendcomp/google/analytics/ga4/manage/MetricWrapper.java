@@ -5,6 +5,7 @@ import com.google.analytics.data.v1beta.MetricMetadata;
 public class MetricWrapper {
 	
 	private MetricMetadata metric;
+	private long propertyId = 0;
 	
 	public MetricWrapper(MetricMetadata m) {
 		if (m == null) {
@@ -55,5 +56,30 @@ public class MetricWrapper {
 	public String getDeprecatedApiNames() {
 		return Util.getListValues(metric.getDeprecatedApiNamesList());
 	}
+
+	public long getPropertyId() {
+		return propertyId;
+	}
+
+	public void setPropertyId(long propertyId) {
+		this.propertyId = propertyId;
+	}
 	
+	public boolean isCustom() {
+		return metric.getCustomDefinition();
+	}
+	
+	@Override
+	public String toString() {
+		return getApiName() + " [" + getMeasurementUnit() + "]" + " (" + getUiName() + ")" + (propertyId > 0 ? " belongs to propertyId=" + propertyId : "");
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o instanceof MetricWrapper) {
+			return ((MetricWrapper) o).getPropertyId() == getPropertyId() && ((MetricWrapper) o).getApiName().equals(getApiName());
+		}
+		return false;
+	}
+
 }
