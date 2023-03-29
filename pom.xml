@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.jlo.talendcomp.google</groupId>
 	<artifactId>jlo-talendcomp-google-analytics4admin</artifactId>
-	<version>1.1</version>
+	<version>1.2</version>
 	<name>GoogleAnalytics Talend Component for GA4 Management</name>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -25,7 +25,7 @@
 		<dependency>
 			<groupId>com.google.analytics</groupId>
 			<artifactId>google-analytics-data</artifactId>
-			<version>0.16.0</version>
+			<version>0.24.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>com.google.api.grpc</groupId>
@@ -38,7 +38,7 @@
 		<dependency>
 			<groupId>com.google.analytics</groupId>
 			<artifactId>google-analytics-admin</artifactId>
-			<version>0.15.0</version>
+			<version>0.23.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>com.google.api.grpc</groupId>
@@ -51,7 +51,7 @@
 		<dependency>
 			<groupId>com.google.auth</groupId>
 			<artifactId>google-auth-library-oauth2-http</artifactId>
-			<version>1.12.1</version>
+			<version>1.16.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
@@ -65,84 +65,9 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>io.grpc</groupId>
-			<artifactId>grpc-netty-shaded</artifactId>
-			<version>1.47.0</version>
-		</dependency>
-		<dependency>
-			<groupId>io.grpc</groupId>
-			<artifactId>grpc-alts</artifactId>
-			<version>1.47.0</version>
-		</dependency>
-		<dependency>
-			<groupId>io.grpc</groupId>
-			<artifactId>grpc-grpclb</artifactId>
-			<version>1.47.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.conscrypt</groupId>
-			<artifactId>conscrypt-openjdk-uber</artifactId>
-			<version>2.5.1</version>
-		</dependency>
-		<dependency>
-			<groupId>io.grpc</groupId>
-			<artifactId>grpc-auth</artifactId>
-			<version>1.47.0</version>
-		</dependency>
-		<dependency>
 			<groupId>io.perfmark</groupId>
 			<artifactId>perfmark-api</artifactId>
-			<version>0.25.0</version>
-		</dependency>
-		<dependency>
-			<groupId>io.grpc</groupId>
-			<artifactId>grpc-core</artifactId>
-			<version>1.47.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.google.android</groupId>
-			<artifactId>annotations</artifactId>
-			<version>4.1.1.4</version>
-		</dependency>
-		<dependency>
-			<groupId>org.codehaus.mojo</groupId>
-			<artifactId>animal-sniffer-annotations</artifactId>
-			<version>1.21</version>
-		</dependency>
-		<dependency>
-			<groupId>io.grpc</groupId>
-			<artifactId>grpc-googleapis</artifactId>
-			<version>1.47.0</version>
-		</dependency>
-		<dependency>
-			<groupId>io.grpc</groupId>
-			<artifactId>grpc-xds</artifactId>
-			<version>1.47.0</version>
-		</dependency>
-		<dependency>
-			<groupId>io.grpc</groupId>
-			<artifactId>grpc-services</artifactId>
-			<version>1.47.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.google.re2j</groupId>
-			<artifactId>re2j</artifactId>
-			<version>1.5</version>
-		</dependency>
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcpkix-jdk15on</artifactId>
-			<version>1.67</version>
-		</dependency>
-		<dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcprov-jdk15on</artifactId>
-			<version>1.67</version>
-		</dependency>
-		<dependency>
-			<groupId>io.opencensus</groupId>
-			<artifactId>opencensus-proto</artifactId>
-			<version>0.2.0</version>
+			<version>0.26.0</version>
 		</dependency>
 	</dependencies>
 
@@ -160,11 +85,12 @@
 			<plugin>
 				<groupId>de.cimt.talendcomp</groupId>
 				<artifactId>cimt-talendcomp-maven-plugin</artifactId>
-				<version>2.1</version>
+				<version>3.3</version>
 				<configuration>
 					<copyFromSourceBaseDir>${project.basedir}/talend_component</copyFromSourceBaseDir>
 					<componentBaseDir>${project.basedir}/talend_component</componentBaseDir>
 					<studioUserComponentFolder>${custom_component_folder}</studioUserComponentFolder>
+					<useTalendLibrariesMavenLocation>false</useTalendLibrariesMavenLocation>
 				</configuration>
 				<executions>
 					<execution>
