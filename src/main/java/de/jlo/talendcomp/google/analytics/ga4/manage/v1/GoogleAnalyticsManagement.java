@@ -48,8 +48,6 @@ import de.jlo.talendcomp.google.analytics.ga4.manage.PropertyWrapper;
 public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
 
 	private static final Map<String, GoogleAnalyticsManagement> clientCache = new HashMap<String, GoogleAnalyticsManagement>();
-	private int expectedCountDimensions = 0;
-	private int expectedCountMetrics = 0;
 	private AnalyticsAdminServiceClient analyticsAdmin = null;
 	private List<DimensionWrapper> listDimensionsMetadata = new ArrayList<>();
 	private List<MetricWrapper> listMetricMetadata = new ArrayList<>();
@@ -171,10 +169,6 @@ public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
 		if (responseMetadata == null) {
 			throw new Exception("No metadata response received!");
 		}
-		expectedCountDimensions = responseMetadata.getDimensionsCount();
-		setMaxRows(expectedCountDimensions);
-		expectedCountMetrics = responseMetadata.getMetricsCount();
-		setMaxRows(expectedCountMetrics);
 		info("Dimensions for propertyId: " + propertyId);
 		List<DimensionMetadata> listD = responseMetadata.getDimensionsList();
 		for (DimensionMetadata d : listD) {
@@ -185,6 +179,7 @@ public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
 				info("* " + w.toString());
 			}
 		}
+		setMaxRows(listDimensionsMetadata.size());
 		info("Metrics for propertyId: " + propertyId);
 		List<MetricMetadata> listM = responseMetadata.getMetricsList();
 		for (MetricMetadata m : listM) {
@@ -195,7 +190,16 @@ public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
 				info("* " + w.toString());
 			}
 		}
+		setMaxRows(listMetricMetadata.size());
 		Thread.sleep(waitMillisBetweenRequests);
+	}
+	
+	public int getCountReceivedDimensions() {
+		return listDimensionsMetadata.size();
+	}
+	
+	public int getCountReceivedMetric() {
+		return listMetricMetadata.size();
 	}
 	
 	private void setMaxRows(int rows) {
