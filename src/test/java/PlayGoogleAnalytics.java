@@ -30,6 +30,7 @@ public class PlayGoogleAnalytics {
 		gi.collectProperties();
 		gi.collectDimensionAndMetrics();
 		gi.close();
+		Thread.sleep(10000l);
 	}
 		
 }

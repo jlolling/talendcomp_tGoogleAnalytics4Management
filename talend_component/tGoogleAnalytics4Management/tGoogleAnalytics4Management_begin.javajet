@@ -82,6 +82,7 @@
 		throw e;
     }	
 <%	} %>
+	<%=cid%>.close();
     int countAccounts_<%=cid%> = 0;
     int countProperties_<%=cid%> = 0;
     int countDimensions_<%=cid%> = 0;

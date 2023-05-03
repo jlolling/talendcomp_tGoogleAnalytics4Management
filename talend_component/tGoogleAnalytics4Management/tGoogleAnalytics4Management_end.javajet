@@ -14,5 +14,4 @@
 	globalMap.put("<%=cid%>_PROPERTIES_NB_LINE", countProperties_<%=cid%>);
 	globalMap.put("<%=cid%>_DIMENSIONS_NB_LINE", countDimensions_<%=cid%>);
 	globalMap.put("<%=cid%>_METRICS_NB_LINE", countMetrics_<%=cid%>);
-	<%=cid%>.close();
 	

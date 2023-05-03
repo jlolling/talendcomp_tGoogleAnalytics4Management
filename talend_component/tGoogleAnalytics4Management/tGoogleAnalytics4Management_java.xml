@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <COMPONENT> 
-  <HEADER PLATEFORM="ALL" SERIAL="" VERSION="1.2" STATUS="PROD" COMPATIBILITY="ALL" AUTHOR="Jan Lolling" RELEASE_DATE="20230329" HAS_CONDITIONAL_OUTPUTS="true" STARTABLE="true"> 
+  <HEADER PLATEFORM="ALL" SERIAL="" VERSION="1.3" STATUS="PROD" COMPATIBILITY="ALL" AUTHOR="Jan Lolling" RELEASE_DATE="20230503" HAS_CONDITIONAL_OUTPUTS="true" STARTABLE="true"> 
     <SIGNATURE/> 
   </HEADER>  
   <FAMILIES> 
@@ -79,44 +79,43 @@
     <PARAMETER FIELD="TEXT" NAME="WAIT_TIME_BETWEEN_REQUESTS" NUM_ROW="10"> 
       <DEFAULT>800</DEFAULT> 
     </PARAMETER>  
-    <PARAMETER NAME="RELEASE_LABEL_20230329" FIELD="LABEL" COLOR="0;0;0" NUM_ROW="900">
-      <DEFAULT>Release: 1.2 build at: 20230329</DEFAULT>
+    <PARAMETER NAME="RELEASE_LABEL_20230503" FIELD="LABEL" COLOR="0;0;0" NUM_ROW="900">
+      <DEFAULT>Release: 1.3 build at: 20230503</DEFAULT>
     </PARAMETER>
   </ADVANCED_PARAMETERS>  
   <CODEGENERATION> 
     <IMPORTS> 
-      <IMPORT NAME="jlo-talendcomp-google-analytics4admin" MODULE="jlo-talendcomp-google-analytics4admin-1.2.jar" MVN="mvn:de.jlo.talendcomp.google/jlo-talendcomp-google-analytics4admin/1.2" REQUIRED="true"/>
-      <IMPORT NAME="google-analytics-data" MODULE="google-analytics-data-0.24.0.jar" MVN="mvn:com.google.analytics/google-analytics-data/0.24.0" REQUIRED="true"/>
-      <IMPORT NAME="grpc-api" MODULE="grpc-api-1.53.0.jar" MVN="mvn:io.grpc/grpc-api/1.53.0" REQUIRED="true"/>
-      <IMPORT NAME="grpc-context" MODULE="grpc-context-1.53.0.jar" MVN="mvn:io.grpc/grpc-context/1.53.0" REQUIRED="true"/>
+      <IMPORT NAME="jlo-talendcomp-google-analytics4admin" MODULE="jlo-talendcomp-google-analytics4admin-1.3.jar" MVN="mvn:de.jlo.talendcomp.google/jlo-talendcomp-google-analytics4admin/1.3" REQUIRED="true"/>
+      <IMPORT NAME="google-analytics-data" MODULE="google-analytics-data-0.27.0.jar" MVN="mvn:com.google.analytics/google-analytics-data/0.27.0" REQUIRED="true"/>
+      <IMPORT NAME="grpc-api" MODULE="grpc-api-1.54.0.jar" MVN="mvn:io.grpc/grpc-api/1.54.0" REQUIRED="true"/>
+      <IMPORT NAME="grpc-context" MODULE="grpc-context-1.54.0.jar" MVN="mvn:io.grpc/grpc-context/1.54.0" REQUIRED="true"/>
       <IMPORT NAME="jsr305" MODULE="jsr305-3.0.2.jar" MVN="mvn:com.google.code.findbugs/jsr305/3.0.2" REQUIRED="true"/>
       <IMPORT NAME="error_prone_annotations" MODULE="error_prone_annotations-2.18.0.jar" MVN="mvn:com.google.errorprone/error_prone_annotations/2.18.0" REQUIRED="true"/>
-      <IMPORT NAME="grpc-stub" MODULE="grpc-stub-1.53.0.jar" MVN="mvn:io.grpc/grpc-stub/1.53.0" REQUIRED="true"/>
-      <IMPORT NAME="grpc-protobuf" MODULE="grpc-protobuf-1.53.0.jar" MVN="mvn:io.grpc/grpc-protobuf/1.53.0" REQUIRED="true"/>
-      <IMPORT NAME="grpc-protobuf-lite" MODULE="grpc-protobuf-lite-1.53.0.jar" MVN="mvn:io.grpc/grpc-protobuf-lite/1.53.0" REQUIRED="true"/>
-      <IMPORT NAME="api-common" MODULE="api-common-2.6.3.jar" MVN="mvn:com.google.api/api-common/2.6.3" REQUIRED="true"/>
+      <IMPORT NAME="grpc-stub" MODULE="grpc-stub-1.54.0.jar" MVN="mvn:io.grpc/grpc-stub/1.54.0" REQUIRED="true"/>
+      <IMPORT NAME="grpc-protobuf" MODULE="grpc-protobuf-1.54.0.jar" MVN="mvn:io.grpc/grpc-protobuf/1.54.0" REQUIRED="true"/>
+      <IMPORT NAME="grpc-protobuf-lite" MODULE="grpc-protobuf-lite-1.54.0.jar" MVN="mvn:io.grpc/grpc-protobuf-lite/1.54.0" REQUIRED="true"/>
+      <IMPORT NAME="api-common" MODULE="api-common-2.9.0.jar" MVN="mvn:com.google.api/api-common/2.9.0" REQUIRED="true"/>
       <IMPORT NAME="auto-value-annotations" MODULE="auto-value-annotations-1.10.1.jar" MVN="mvn:com.google.auto.value/auto-value-annotations/1.10.1" REQUIRED="true"/>
-      <IMPORT NAME="auto-value" MODULE="auto-value-1.10.1.jar" MVN="mvn:com.google.auto.value/auto-value/1.10.1" REQUIRED="true"/>
       <IMPORT NAME="javax.annotation-api" MODULE="javax.annotation-api-1.3.2.jar" MVN="mvn:javax.annotation/javax.annotation-api/1.3.2" REQUIRED="true"/>
       <IMPORT NAME="protobuf-java" MODULE="protobuf-java-3.21.12.jar" MVN="mvn:com.google.protobuf/protobuf-java/3.21.12" REQUIRED="true"/>
-      <IMPORT NAME="proto-google-common-protos" MODULE="proto-google-common-protos-2.14.3.jar" MVN="mvn:com.google.api.grpc/proto-google-common-protos/2.14.3" REQUIRED="true"/>
-      <IMPORT NAME="proto-google-analytics-data-v1beta" MODULE="proto-google-analytics-data-v1beta-0.24.0.jar" MVN="mvn:com.google.api.grpc/proto-google-analytics-data-v1beta/0.24.0" REQUIRED="true"/>
+      <IMPORT NAME="proto-google-common-protos" MODULE="proto-google-common-protos-2.17.0.jar" MVN="mvn:com.google.api.grpc/proto-google-common-protos/2.17.0" REQUIRED="true"/>
+      <IMPORT NAME="proto-google-analytics-data-v1beta" MODULE="proto-google-analytics-data-v1beta-0.27.0.jar" MVN="mvn:com.google.api.grpc/proto-google-analytics-data-v1beta/0.27.0" REQUIRED="true"/>
       <IMPORT NAME="guava-31.1" MODULE="guava-31.1-jre.jar" MVN="mvn:com.google.guava/guava/31.1-jre" REQUIRED="true"/>
       <IMPORT NAME="failureaccess" MODULE="failureaccess-1.0.1.jar" MVN="mvn:com.google.guava/failureaccess/1.0.1" REQUIRED="true"/>
       <IMPORT NAME="listenablefuture-9999.0-empty-to-avoid-conflict-with" MODULE="listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar" MVN="mvn:com.google.guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava" REQUIRED="true"/>
       <IMPORT NAME="checker-qual" MODULE="checker-qual-3.32.0.jar" MVN="mvn:org.checkerframework/checker-qual/3.32.0" REQUIRED="true"/>
       <IMPORT NAME="j2objc-annotations" MODULE="j2objc-annotations-1.3.jar" MVN="mvn:com.google.j2objc/j2objc-annotations/1.3" REQUIRED="true"/>
-      <IMPORT NAME="gax" MODULE="gax-2.23.3.jar" MVN="mvn:com.google.api/gax/2.23.3" REQUIRED="true"/>
+      <IMPORT NAME="gax" MODULE="gax-2.26.0.jar" MVN="mvn:com.google.api/gax/2.26.0" REQUIRED="true"/>
       <IMPORT NAME="google-auth-library-credentials" MODULE="google-auth-library-credentials-1.16.0.jar" MVN="mvn:com.google.auth/google-auth-library-credentials/1.16.0" REQUIRED="true"/>
       <IMPORT NAME="opencensus-api" MODULE="opencensus-api-0.31.1.jar" MVN="mvn:io.opencensus/opencensus-api/0.31.1" REQUIRED="true"/>
-      <IMPORT NAME="gax-grpc" MODULE="gax-grpc-2.23.3.jar" MVN="mvn:com.google.api/gax-grpc/2.23.3" REQUIRED="true"/>
-      <IMPORT NAME="grpc-alts" MODULE="grpc-alts-1.53.0.jar" MVN="mvn:io.grpc/grpc-alts/1.53.0" REQUIRED="true"/>
-      <IMPORT NAME="grpc-grpclb" MODULE="grpc-grpclb-1.53.0.jar" MVN="mvn:io.grpc/grpc-grpclb/1.53.0" REQUIRED="true"/>
+      <IMPORT NAME="gax-grpc" MODULE="gax-grpc-2.26.0.jar" MVN="mvn:com.google.api/gax-grpc/2.26.0" REQUIRED="true"/>
+      <IMPORT NAME="grpc-alts" MODULE="grpc-alts-1.54.0.jar" MVN="mvn:io.grpc/grpc-alts/1.54.0" REQUIRED="true"/>
+      <IMPORT NAME="grpc-grpclb" MODULE="grpc-grpclb-1.54.0.jar" MVN="mvn:io.grpc/grpc-grpclb/1.54.0" REQUIRED="true"/>
       <IMPORT NAME="conscrypt-openjdk-uber" MODULE="conscrypt-openjdk-uber-2.5.2.jar" MVN="mvn:org.conscrypt/conscrypt-openjdk-uber/2.5.2" REQUIRED="true"/>
-      <IMPORT NAME="grpc-auth" MODULE="grpc-auth-1.53.0.jar" MVN="mvn:io.grpc/grpc-auth/1.53.0" REQUIRED="true"/>
-      <IMPORT NAME="grpc-netty-shaded" MODULE="grpc-netty-shaded-1.53.0.jar" MVN="mvn:io.grpc/grpc-netty-shaded/1.53.0" REQUIRED="true"/>
-      <IMPORT NAME="grpc-core" MODULE="grpc-core-1.53.0.jar" MVN="mvn:io.grpc/grpc-core/1.53.0" REQUIRED="true"/>
-      <IMPORT NAME="gax-httpjson" MODULE="gax-httpjson-0.108.3.jar" MVN="mvn:com.google.api/gax-httpjson/0.108.3" REQUIRED="true"/>
+      <IMPORT NAME="grpc-auth" MODULE="grpc-auth-1.54.0.jar" MVN="mvn:io.grpc/grpc-auth/1.54.0" REQUIRED="true"/>
+      <IMPORT NAME="grpc-netty-shaded" MODULE="grpc-netty-shaded-1.54.0.jar" MVN="mvn:io.grpc/grpc-netty-shaded/1.54.0" REQUIRED="true"/>
+      <IMPORT NAME="grpc-core" MODULE="grpc-core-1.54.0.jar" MVN="mvn:io.grpc/grpc-core/1.54.0" REQUIRED="true"/>
+      <IMPORT NAME="gax-httpjson" MODULE="gax-httpjson-0.111.0.jar" MVN="mvn:com.google.api/gax-httpjson/0.111.0" REQUIRED="true"/>
       <IMPORT NAME="gson" MODULE="gson-2.10.1.jar" MVN="mvn:com.google.code.gson/gson/2.10.1" REQUIRED="true"/>
       <IMPORT NAME="google-http-client" MODULE="google-http-client-1.43.1.jar" MVN="mvn:com.google.http-client/google-http-client/1.43.1" REQUIRED="true"/>
       <IMPORT NAME="httpclient" MODULE="httpclient-4.5.14.jar" MVN="mvn:org.apache.httpcomponents/httpclient/4.5.14" REQUIRED="true"/>
@@ -126,10 +125,10 @@
       <IMPORT NAME="opencensus-contrib-http-util" MODULE="opencensus-contrib-http-util-0.31.1.jar" MVN="mvn:io.opencensus/opencensus-contrib-http-util/0.31.1" REQUIRED="true"/>
       <IMPORT NAME="google-http-client-gson" MODULE="google-http-client-gson-1.43.1.jar" MVN="mvn:com.google.http-client/google-http-client-gson/1.43.1" REQUIRED="true"/>
       <IMPORT NAME="protobuf-java-util" MODULE="protobuf-java-util-3.21.12.jar" MVN="mvn:com.google.protobuf/protobuf-java-util/3.21.12" REQUIRED="true"/>
-      <IMPORT NAME="threetenbp" MODULE="threetenbp-1.6.5.jar" MVN="mvn:org.threeten/threetenbp/1.6.5" REQUIRED="true"/>
-      <IMPORT NAME="google-analytics-admin" MODULE="google-analytics-admin-0.23.0.jar" MVN="mvn:com.google.analytics/google-analytics-admin/0.23.0" REQUIRED="true"/>
-      <IMPORT NAME="proto-google-analytics-admin-v1beta" MODULE="proto-google-analytics-admin-v1beta-0.23.0.jar" MVN="mvn:com.google.api.grpc/proto-google-analytics-admin-v1beta/0.23.0" REQUIRED="true"/>
-      <IMPORT NAME="google-auth-library-oauth2-http" MODULE="google-auth-library-oauth2-http-1.16.0.jar" MVN="mvn:com.google.auth/google-auth-library-oauth2-http/1.16.0" REQUIRED="true"/>
+      <IMPORT NAME="threetenbp" MODULE="threetenbp-1.6.8.jar" MVN="mvn:org.threeten/threetenbp/1.6.8" REQUIRED="true"/>
+      <IMPORT NAME="google-analytics-admin" MODULE="google-analytics-admin-0.26.0.jar" MVN="mvn:com.google.analytics/google-analytics-admin/0.26.0" REQUIRED="true"/>
+      <IMPORT NAME="proto-google-analytics-admin-v1beta" MODULE="proto-google-analytics-admin-v1beta-0.26.0.jar" MVN="mvn:com.google.api.grpc/proto-google-analytics-admin-v1beta/0.26.0" REQUIRED="true"/>
+      <IMPORT NAME="google-auth-library-oauth2-http" MODULE="google-auth-library-oauth2-http-1.16.1.jar" MVN="mvn:com.google.auth/google-auth-library-oauth2-http/1.16.1" REQUIRED="true"/>
       <IMPORT NAME="log4j-api" MODULE="log4j-api-2.18.0.jar" MVN="mvn:org.apache.logging.log4j/log4j-api/2.18.0" REQUIRED="true"/>
       <IMPORT NAME="perfmark-api" MODULE="perfmark-api-0.26.0.jar" MVN="mvn:io.perfmark/perfmark-api/0.26.0" REQUIRED="true"/>
     </IMPORTS> 

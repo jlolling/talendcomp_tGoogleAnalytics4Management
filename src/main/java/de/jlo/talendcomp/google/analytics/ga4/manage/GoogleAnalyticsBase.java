@@ -119,7 +119,23 @@ public class GoogleAnalyticsBase {
 		}
 	}
 
-	public void error(String message, Exception e) {
+	public void warn(String message, Throwable t) {
+		if (logger != null) {
+			logger.warn(message, t);
+		} else {
+			System.err.println("WARN:" + message);
+		}
+	}
+
+	public void error(String message) {
+		if (logger != null) {
+			logger.error(message);
+		} else {
+			System.err.println("ERROR:" + message);
+		}
+	}
+
+	public void error(String message, Throwable e) {
 		if (logger != null) {
 			if (e != null) {
 				logger.error(message, e);
@@ -133,15 +149,19 @@ public class GoogleAnalyticsBase {
 
 	public void close() {
 		if (analyticsDataClient != null) {
+			info("Close analytics client...");
 			try {
-				analyticsDataClient.shutdown();
+				analyticsDataClient.shutdownNow();
 				while (true) {
 					if (analyticsDataClient.awaitTermination(10000, TimeUnit.MILLISECONDS)) {
 						break;
 					}
 				}
-			} catch (Throwable t) {}
+			} catch (Throwable t) {
+				warn("Shutdown analytics client interrupted or failed: " + t.getMessage(), t);
+			}
 		}
+		info("Shutdown analytics client finished");
 	}
 
 }

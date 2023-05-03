@@ -73,7 +73,6 @@ public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
 				.setCredentialsProvider(FixedCredentialsProvider.create(getGoogleCredentials()))
 				.build();
 		analyticsAdmin = AnalyticsAdminServiceClient.create(settings);
-		super.initializeAnalyticsClient();
 	}
 	
 	public void collectAccounts() throws Exception {
@@ -286,18 +285,22 @@ public class GoogleAnalyticsManagement extends GoogleAnalyticsBase {
 
 	@Override
 	public void close() {
-		info("Close clients");
+		info("Close clients...");
+		super.close();
 		if (analyticsAdmin != null) {
+			info("Close admin client...");
 			try {
-				analyticsAdmin.shutdown();
+				analyticsAdmin.shutdownNow();
 				while (true) {
 					if (analyticsAdmin.awaitTermination(10000, TimeUnit.MILLISECONDS)) {
 						break;
 					}
 				}
-			} catch (Throwable t) {}
+			} catch (Throwable t) {
+				warn("Shutdown admin client interrupted or failed: " + t.getMessage(), t);
+			}
 		}
-		super.close();
+		info("Shutdown admin client finished");
 	}
 
 	public long getWaitMillisBetweenRequests() {
