@@ -22,7 +22,7 @@ public class PlayGoogleAnalytics {
 	public static void testGAData() throws Exception {
 		GoogleAnalyticsManagement gi = new GoogleAnalyticsManagement();
 //		gi.setJsonCredentialFile("/var/testdata/ga/config/ga4_test_talendcomp-jlo-6a6adfd8a6b6.json");
-		gi.setJsonCredentialFile("/Users/jan/development/testdata/ga/config/project-id-001-140713-07f12af3d6e7.json");
+		gi.setJsonCredentialFile("/var/opt/talend/config/google_analytics/project-id-001-140713-07f12af3d6e7.json");
 		System.out.println("initialize clients....");
 		gi.initializeAdminClient();
 		System.out.println("collect data...");
